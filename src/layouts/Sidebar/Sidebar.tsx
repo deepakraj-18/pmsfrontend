@@ -6,7 +6,6 @@ import {
   CheckSquare,
   AlertCircle,
   Clock,
-  Timer,
   BarChart3,
   Users,
   UsersRound,
@@ -15,10 +14,12 @@ import {
   Settings,
   PanelLeftClose,
   PanelLeft,
-  Milestone
+  Milestone,
+  LayoutTemplate,
 } from 'lucide-react';
 import { useAuth } from '@/auth/AuthProvider';
-import { can, ROLES } from '@/utils/permissions';
+import { ROLES, checkPermission, can } from '@/utils/permissions';
+import { Button } from 'primereact/button';
 
 interface NavItem {
   path: string;
@@ -26,38 +27,42 @@ interface NavItem {
   icon: React.ReactNode;
   section?: string;
   allowedRoles?: string[];
+  requiredPermission?: string;
 }
 
 const navItems: NavItem[] = [
   { path: '/', label: 'Dashboard', icon: <LayoutDashboard size={17} />, section: 'Main' },
-  { path: '/projects',  label: 'Projects',  icon: <FolderKanban  size={17} /> },
-  { path: '/tasks',     label: 'Tasks',     icon: <CheckSquare   size={17} /> },
-  { path: '/issues',    label: 'Issues',    icon: <AlertCircle   size={17} /> },
-  { path: '/time-log',  label: 'Time Logs', icon: <Clock         size={17} /> },
-  { path: '/timesheets',label: 'Timesheets',icon: <Timer         size={17} /> },
+  { path: '/projects', label: 'Projects', icon: <FolderKanban size={17} />, requiredPermission: 'proj-view' },
+  { path: '/tasks', label: 'Tasks', icon: <CheckSquare size={17} />, requiredPermission: 'task-view' },
+  { path: '/issues', label: 'Defects', icon: <AlertCircle size={17} />, requiredPermission: 'issue-view' },
+  { path: '/time-log', label: 'Time Logs', icon: <Clock size={17} />, requiredPermission: 'time-view' },
   {
     path: '/reports', label: 'Reports', icon: <BarChart3 size={17} />,
-    allowedRoles: [ROLES.ADMIN, ROLES.PROJECT_MANAGER, ROLES.TEAM_LEAD],
+    requiredPermission: 'report-view',
   },
   {
     path: '/milestones', label: 'Milestones', icon: <Milestone size={17} />,
-    allowedRoles: [ROLES.ADMIN, ROLES.PROJECT_MANAGER, ROLES.TEAM_LEAD],
+    requiredPermission: 'milestone-view',
   },
   {
-    path: '/users', label: 'Users', icon: <Users size={17} />,
+    path: '/templates', label: 'Templates', icon: <LayoutTemplate size={17} />,
+    requiredPermission: 'proj-create'
+  },
+  {
+    path: '/users', label: 'Logged Users', icon: <Users size={17} />,
     section: 'Management',
-    allowedRoles: [ROLES.ADMIN, ROLES.PROJECT_MANAGER],
+    requiredPermission: 'user-view',
   },
   {
     path: '/teams', label: 'Teams', icon: <UsersRound size={17} />,
-    allowedRoles: [ROLES.ADMIN, ROLES.PROJECT_MANAGER],
+    requiredPermission: 'team-view',
   },
   {
     path: '/roles', label: 'Roles', icon: <Shield size={17} />,
-    allowedRoles: [ROLES.ADMIN, ROLES.PROJECT_MANAGER],
+    requiredPermission: 'role-manage',
   },
   { path: '/notification-settings', label: 'Notifications', icon: <BellRing size={17} /> },
-  { path: '/settings', label: 'Settings', icon: <Settings size={17} /> },
+  { path: '/settings', label: 'Settings', icon: <Settings size={17} />, requiredPermission: 'settings-view' },
 ];
 
 export function Sidebar() {
@@ -77,7 +82,11 @@ export function Sidebar() {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 1024 && !collapsed) setCollapsed(true);
+      if (window.innerWidth < 1024 && !collapsed) {
+        setCollapsed(true);
+      } else if (window.innerWidth >= 1024 && collapsed) {
+        setCollapsed(false);
+      }
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -91,15 +100,45 @@ export function Sidebar() {
 
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
-  const visibleItems = navItems.filter(item =>
-    !item.allowedRoles || item.allowedRoles.includes(userRole)
-  );
+  const visibleItems = navItems.filter(item => {
+    const role = user?.role;
+
+    const permissionKey = item.requiredPermission;
+    if (permissionKey) {
+      const permissionMap: Record<string, keyof typeof can> = {
+        'proj-view': 'viewProjects',
+        'task-view': 'viewTasks',
+        'issue-view': 'viewIssues',
+        'time-view': 'viewTimeLogs',
+        'report-view': 'viewReports',
+        'milestone-view': 'viewMilestones',
+        'user-view': 'viewUsers',
+        'team-view': 'viewTeams',
+        'role-manage': 'viewRoles',
+        'settings-view': 'viewSettings',
+        'proj-create': 'createProject'
+      };
+
+      const canMethod = permissionMap[permissionKey];
+      if (canMethod && typeof can[canMethod] === 'function') {
+        if (!(can[canMethod] as Function)(role)) return false;
+      } else if (!checkPermission(role, permissionKey)) {
+
+        return false;
+      }
+    }
+
+    if (item.allowedRoles && !item.allowedRoles.includes(userRole)) {
+      return false;
+    }
+    return true;
+  });
 
   let currentSection = '';
 
   return (
     <>
-      {/* Mobile overlay */}
+      { }
       {mobileOpen && (
         <div
           className="fixed inset-0 bg-black/40 z-30 md:hidden backdrop-blur-[2px]"
@@ -110,15 +149,17 @@ export function Sidebar() {
       <aside
         className={`
           fixed left-0 top-16 bottom-0 z-40 flex flex-col
-          border-r border-[var(--border-color)]
-          bg-[var(--sidebar-bg)] backdrop-blur-xl
           transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
           ${collapsed ? 'w-[68px]' : 'w-[240px]'}
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
-        style={{ willChange: 'width, transform' }}
+        style={{
+          willChange: 'width, transform',
+          backgroundColor: 'var(--sidebar-bg)',
+          borderRight: '1px solid var(--border-color)',
+        }}
       >
-        {/* Navigation */}
+        { }
         <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3 px-2.5 hide-scrollbar">
           {visibleItems.map((item) => {
             const isActive =
@@ -160,7 +201,7 @@ export function Sidebar() {
                     }
                   `}
                 >
-                  {/* Active indicator bar */}
+                  { }
                   {isActive && (
                     <span
                       className="absolute left-0 top-[15%] bottom-[15%] w-[3px] rounded-r-full"
@@ -171,7 +212,7 @@ export function Sidebar() {
                     {item.icon}
                   </span>
                   {!collapsed && (
-                    <span className="text-[13px] truncate leading-none">
+                    <span className="text-[13px] truncate leading-normal">
                       {item.label}
                     </span>
                   )}
@@ -181,13 +222,12 @@ export function Sidebar() {
           })}
         </nav>
 
-        {/* Collapse toggle */}
+        { }
         <div
           className="flex-shrink-0 px-2.5 py-3"
           style={{ borderTop: '1px solid var(--border-color)' }}
         >
-          <button
-            onClick={() => setCollapsed(!collapsed)}
+          <Button unstyled onClick={() => setCollapsed(!collapsed)}
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             className={`
               w-full flex items-center gap-2.5 rounded-[8px] py-2 px-3
@@ -205,7 +245,7 @@ export function Sidebar() {
                 </>
               )
             }
-          </button>
+          </Button>
         </div>
       </aside>
     </>

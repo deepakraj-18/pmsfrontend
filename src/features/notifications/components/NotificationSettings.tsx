@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { PageLayout } from '@/layouts/PageWrapper/PageLayout';
-import { Card } from '@/components/ui/Card/Card';
+import { Card } from '@/components/layout/Card';
 import { Button } from 'primereact/button';
-import { Checkbox } from '@/components/ui/Checkbox/Checkbox';
+import { CheckboxInput } from '@/components/forms/CheckboxInput';
+import { DropdownSelect } from '@/components/forms/DropdownSelect';
+import { InputSwitch } from 'primereact/inputswitch';
 import { Save } from 'lucide-react';
 
 const notificationCategories = [
@@ -57,12 +59,12 @@ export function NotificationSettings() {
       }
     >
       <div className="space-y-6">
-        <Card>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[6px] flex items-center justify-center" style={{ backgroundColor: 'var(--primary-light)' }}>
-              <Save className="w-5 h-5" style={{ color: 'var(--primary)' }} />
+        <Card className="bg-brand-teal-50/50 dark:bg-brand-teal-900/10 border-brand-teal-100 dark:border-brand-teal-900/30">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white dark:bg-slate-800 text-brand-teal-600 shadow-sm border border-brand-teal-100 dark:border-brand-teal-900/30">
+              <Save className="w-5 h-5" />
             </div>
-            <p className="text-[14px] text-theme-secondary">
+            <p className="text-[14px] font-medium text-brand-teal-900 dark:text-brand-teal-100">
               Configure how you receive notifications for different types of events in the system.
             </p>
           </div>
@@ -71,14 +73,14 @@ export function NotificationSettings() {
         {settings.map((section, sectionIndex) => (
           <Card key={sectionIndex} title={section.category}>
             <div className="space-y-1">
-              <div className="hidden sm:grid sm:grid-cols-3 gap-4 pb-3" style={{ borderBottom: '1px solid var(--card-border)' }}>
-                <div className="col-span-1 text-[12px] font-semibold text-theme-secondary uppercase tracking-wider">
+              <div className="hidden sm:grid sm:grid-cols-3 gap-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div className="col-span-1 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                   Notification Type
                 </div>
-                <div className="text-center text-[12px] font-semibold text-theme-secondary uppercase tracking-wider">
+                <div className="text-center text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                   Email
                 </div>
-                <div className="text-center text-[12px] font-semibold text-theme-secondary uppercase tracking-wider">
+                <div className="text-center text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                   In-App
                 </div>
               </div>
@@ -86,20 +88,18 @@ export function NotificationSettings() {
               {section.items.map((item) => (
                 <div
                   key={item.id}
-                  className="flex flex-col sm:grid sm:grid-cols-3 gap-3 sm:gap-4 items-start sm:items-center py-3 rounded-[6px] transition-colors px-2"
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg-hover)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; }}
+                  className="flex flex-col sm:grid sm:grid-cols-3 gap-3 sm:gap-4 items-start sm:items-center py-4 px-2 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50"
                 >
-                  <div className="col-span-1 text-[14px] text-theme-primary mb-1 sm:mb-0">
+                  <div className="col-span-1 text-[14px] font-medium text-slate-700 dark:text-slate-300">
                     {item.label}
                   </div>
                   <div className="flex items-center gap-3 sm:justify-center w-full sm:w-auto pl-1 sm:pl-0">
-                    <span className="sm:hidden text-[13px] text-theme-secondary w-16">Email</span>
-                    <Checkbox defaultChecked={item.email} />
+                    <span className="sm:hidden text-[12px] font-bold text-slate-400 uppercase tracking-wider w-16">Email</span>
+                    <CheckboxInput checked={item.email} onChange={() => { }} />
                   </div>
                   <div className="flex items-center gap-3 sm:justify-center w-full sm:w-auto pl-1 sm:pl-0">
-                    <span className="sm:hidden text-[13px] text-theme-secondary w-16">In-App</span>
-                    <Checkbox defaultChecked={item.inApp} />
+                    <span className="sm:hidden text-[12px] font-bold text-slate-400 uppercase tracking-wider w-16">In-App</span>
+                    <CheckboxInput checked={item.inApp} onChange={() => { }} />
                   </div>
                 </div>
               ))}
@@ -109,39 +109,36 @@ export function NotificationSettings() {
 
         <Card title="Notification Frequency">
           <div className="space-y-4">
-            <div
-              className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-3 px-2 rounded-[6px] transition-colors"
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg-hover)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; }}
-            >
-              <div>
-                <p className="text-[14px] font-medium text-theme-primary">Digest Email</p>
-                <p className="text-[12px] text-theme-secondary">Receive a summary of all notifications</p>
+            <div className="space-y-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 px-2 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <div>
+                  <p className="text-[14px] font-bold text-slate-800 dark:text-slate-200">Digest Email</p>
+                  <p className="text-[12px] text-slate-500">Receive a summary of all notifications</p>
+                </div>
+                <DropdownSelect
+                  options={[
+                    { label: 'Never', value: 'never' },
+                    { label: 'Daily', value: 'daily' },
+                    { label: 'Weekly', value: 'weekly' },
+                  ]}
+                  defaultValue="never"
+                  className="h-10 w-full sm:w-auto min-w-[140px] mt-2 sm:mt-0 !rounded-xl"
+                />
               </div>
-              <select
-                className="h-10 px-3 w-full sm:w-auto min-w-[140px] mt-2 sm:mt-0 rounded-[6px] border text-[14px] focus:outline-none focus:ring-2 focus:ring-[#14b8a6] focus:border-transparent"
-                style={{ backgroundColor: 'var(--input-bg)', borderColor: 'var(--input-border)', color: 'var(--text-primary)' }}
-              >
-                <option>Never</option>
-                <option>Daily</option>
-                <option>Weekly</option>
-              </select>
-            </div>
-            <div
-              className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-3 px-2 rounded-[6px] transition-colors"
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg-hover)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = ''; }}
-            >
-              <div>
-                <p className="text-[14px] font-medium text-theme-primary">Do Not Disturb</p>
-                <p className="text-[12px] text-theme-secondary">Pause all notifications during specific hours</p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 px-2 rounded-xl transition-all hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                <div>
+                  <p className="text-[14px] font-bold text-slate-800 dark:text-slate-200">Do Not Disturb</p>
+                  <p className="text-[12px] text-slate-500">Pause all notifications during specific hours</p>
+                </div>
+                <InputSwitch
+                  checked={false}
+                  onChange={() => { }}
+                  pt={{
+                    root: { className: 'w-12 h-6' },
+                    slider: { className: 'transition-all duration-300 rounded-full' },
+                  }}
+                />
               </div>
-              <label className="relative inline-block w-12 h-6 cursor-pointer group">
-                <input type="checkbox" className="sr-only peer" />
-                <div className="w-full h-full rounded-full transition-all duration-300" style={{ backgroundColor: 'var(--border-color)' }}></div>
-                <div className="absolute inset-0 rounded-full transition-opacity duration-300 opacity-0 peer-checked:opacity-100" style={{ background: 'var(--brand-gradient)' }}></div>
-                <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-300 peer-checked:translate-x-6 z-10"></div>
-              </label>
             </div>
           </div>
         </Card>

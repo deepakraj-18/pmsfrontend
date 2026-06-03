@@ -1,71 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
 
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <meta name="description" content="TechnoRUCS Project Management System — Manage projects, tasks, timesheets and teams." />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="TechnoRUCS Project Management System — Manage projects, tasks, timesheets and teams." />
 
-      <!-- Google Fonts: preconnect + variable font load (single request for all weights) -->
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-      <!--
-        Inter Variable — covers wght 100..900 in one file.
-        JetBrains Mono — code / ID blocks.
-        display=swap ensures text is visible during font load (no invisible text flash).
-      -->
-      <link
-        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet"
-      />
 
-      <title>TechnoRUCS PMS</title>
-    </head>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-    <body>
-      <div id="root">
-        <!-- Inline critical CSS for initial paint — avoids FOUC before React mounts -->
-        <style>
-          #initial-loader {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            width: 100vw;
-            background-color: #f8fafc;
-            font-family: 'Inter', system-ui, sans-serif;
-            gap: 20px;
-          }
-          .loader-ring {
-            width: 48px;
-            height: 48px;
-            border: 3px solid #e2e8f0;
-            border-top-color: #14b8a6;
-            border-radius: 50%;
-            animation: spin 0.85s linear infinite;
-          }
-          .loader-text {
-            color: #94a3b8;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-          }
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-          @media (prefers-color-scheme: dark) {
-            #initial-loader { background-color: #0f172a; }
-            .loader-ring { border-color: #1e293b; border-top-color: #14b8a6; }
-            .loader-text { color: #475569; }
-          }
-        </style>
-        <div id="initial-loader">
-          <div class="loader-ring"></div>
-          <div class="loader-text">Loading</div>
-        </div>
-      </div>
-      <script type="module" src="/src/main.tsx"></script>
-    </body>
-  </html>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <title>TechnoRUCS PMS</title>
+
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('app-theme');
+        if (saved === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      } catch (e) { }
+    })();
+  </script>
+</head>
+
+<body>
+  <div id="root">
+
+    <style>
+      #initial-loader {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        width: 100vw;
+        background-color: #f8fafc;
+        font-family: 'Inter', system-ui, sans-serif;
+        gap: 20px;
+      }
+
+      .loader-ring {
+        width: 48px;
+        height: 48px;
+        border: 3px solid #e2e8f0;
+        border-top-color: #14b8a6;
+        border-radius: 50%;
+        animation: spin 0.85s linear infinite;
+      }
+
+      .loader-text {
+        color: #94a3b8;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (prefers-color-scheme: dark) {
+        #initial-loader {
+          background-color: #0f172a;
+        }
+
+        .loader-ring {
+          border-color: #1e293b;
+          border-top-color: #14b8a6;
+        }
+
+        .loader-text {
+          color: #475569;
+        }
+      }
+    </style>
+    <div id="initial-loader">
+      <div class="loader-ring"></div>
+      <div class="loader-text">Loading</div>
+    </div>
+  </div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>

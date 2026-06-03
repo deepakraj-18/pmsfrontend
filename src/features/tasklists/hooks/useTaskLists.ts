@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { tasklistsService, TaskList } from '../services/tasklists.api';
+import { tasklistsService, TaskList } from '../api/tasklists.api';
 
 export const taskListKeys = {
     all: ['taskLists'] as const,

@@ -1,10 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { api } from '@/api/axiosInstance';
-
-/**
- * AuthContext — Managed enterprise session state.
- * Handles JWT storage, profile hydration, and role-based access.
- */
+import { api } from '@/api/client';
+import { STORAGE_KEYS, AUTH_ENDPOINTS, ROUTES } from '@/constants/constants';
 
 export interface AuthUser {
     id: number;
@@ -13,7 +9,7 @@ export interface AuthUser {
     first_name: string;
     last_name: string;
     display_name?: string;
-    role?: { id: number; name: string };
+    role?: { id: number; name: string; permissions?: Record<string, boolean> };
     is_external: boolean;
     is_synced: boolean;
 }
@@ -22,32 +18,31 @@ interface AuthContextType {
     token: string | null;
     user: AuthUser | null;
     isLoading: boolean;
-    login: (token: string, profile?: AuthUser) => Promise<void>;
+    login: (token: string, refreshToken: string, profile?: AuthUser) => Promise<void>;
     logout: () => void;
     refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-const TOKEN_KEY = 'pms_token';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
+    const [token, setToken] = useState<string | null>(() => localStorage.getItem(STORAGE_KEYS.TOKEN));
     const [user, setUser] = useState<AuthUser | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     const fetchProfile = useCallback(async () => {
         try {
-            const response = await api.get('/auth/me');
+            const response = await api.get(AUTH_ENDPOINTS.ME);
             setUser(response.data);
         } catch (err) {
             console.warn('[Auth] Profile fetch failed. Clearing session.', err);
-            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(STORAGE_KEYS.TOKEN);
+            localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
             setToken(null);
             setUser(null);
         }
     }, []);
 
-    // On mount or token change: validate session
     useEffect(() => {
         if (token) {
             fetchProfile().finally(() => {
@@ -58,20 +53,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, [token, fetchProfile]);
 
-    const login = useCallback(async (newToken: string, profile?: AuthUser) => {
-        localStorage.setItem(TOKEN_KEY, newToken);
+    const login = useCallback(async (newToken: string, newRefreshToken: string, profile?: AuthUser) => {
+        localStorage.setItem(STORAGE_KEYS.TOKEN, newToken);
+        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, newRefreshToken);
         setToken(newToken);
-        // Hydrate user immediately if profile is provided (avoids loading flash)
         if (profile) {
             setUser(profile);
         }
     }, []);
 
     const logout = useCallback(() => {
-        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(STORAGE_KEYS.TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
         setToken(null);
         setUser(null);
-        window.location.href = '/login';
+        window.location.href = ROUTES.LOGIN;
     }, []);
 
     const refreshProfile = useCallback(async () => {

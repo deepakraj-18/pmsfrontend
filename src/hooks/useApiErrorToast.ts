@@ -1,12 +1,6 @@
 import { useEffect } from 'react';
 import { useToast } from '@/providers/ToastContext';
 
-/**
- * Hook that listens for global API error events dispatched by the Axios
- * response interceptor and shows them as toast notifications automatically.
- * 
- * Wire this into a component that is always mounted (e.g. App.tsx or a layout).
- */
 export function useApiErrorToast() {
     const { showToast } = useToast();
 

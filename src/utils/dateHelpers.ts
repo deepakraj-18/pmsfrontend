@@ -1,40 +1,59 @@
-/**
- * Date and time helper functions using strict TypeScript
- */
+import { parseISO, isValid, differenceInDays, startOfDay } from 'date-fns';
 
-/**
- * Calculates the number of days left until a given target date.
- * If the target date is today or in the past, it returns 0.
- *
- * @param endDate - The target date string (e.g., 'YYYY-MM-DD') or Date object.
- * @returns The number of days remaining.
- */
-export function getDaysLeft(endDate: string | Date | null | undefined): number {
-    if (!endDate) return 0;
+export const formatLocalDate = (dateVal: Date | string | null | undefined): string | null => {
+    if (!dateVal) return null;
+    let d: Date;
+    if (typeof dateVal === 'string' && dateVal.includes('T') === false && dateVal.includes(' ') === false) {
+        d = parseISO(dateVal);
+    } else {
+        d = new Date(dateVal);
+    }
 
-    const end = new Date(endDate);
-    const today = new Date();
+    if (!isValid(d)) return null;
 
-    // Strip time portion for accurate day calculation
-    end.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
 
-    const diffTime = end.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+export const calculateDaysLeft = (endDateVal: Date | string | null | undefined): number | null => {
+    if (!endDateVal) return null;
 
-    return diffDays > 0 ? diffDays : 0;
-}
+    let endDate: Date;
+    if (typeof endDateVal === 'string' && endDateVal.includes('T') === false && endDateVal.includes(' ') === false) {
+        endDate = parseISO(endDateVal);
+    } else {
+        endDate = new Date(endDateVal);
+    }
 
-/**
- * Formats a given date to a readable string format (e.g., "Oct 12, 2024")
- */
-export function formatDate(dateStr: string | Date | null | undefined): string {
-    if (!dateStr) return 'N/A';
+    if (!isValid(endDate)) return null;
 
-    const date = new Date(dateStr);
-    return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-    }).format(date);
-}
+    const normalizedEndDate = startOfDay(endDate);
+    const normalizedToday = startOfDay(new Date());
+
+    return differenceInDays(normalizedEndDate, normalizedToday);
+};
+
+export const formatDaysLeftText = (daysLeft: number | null): string => {
+    if (daysLeft === null) return 'No due date';
+    if (daysLeft < 0) return `${Math.abs(daysLeft)} days overdue`;
+    if (daysLeft === 0) return 'Due today';
+    if (daysLeft === 1) return '1 day left';
+    if (daysLeft > 365) return 'More than a year left';
+    return `${daysLeft} days left`;
+};
+
+export const calculateDaysToDate = (targetDateVal: Date | string | null | undefined): number | null => {
+    if (!targetDateVal) return null;
+    let targetDate: Date;
+    if (typeof targetDateVal === 'string' && targetDateVal.includes('T') === false && targetDateVal.includes(' ') === false) {
+        targetDate = parseISO(targetDateVal);
+    } else {
+        targetDate = new Date(targetDateVal);
+    }
+    if (!isValid(targetDate)) return null;
+    const normalizedTarget = startOfDay(targetDate);
+    const normalizedToday = startOfDay(new Date());
+    return differenceInDays(normalizedTarget, normalizedToday);
+};

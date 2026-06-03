@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageLayout } from '@/layouts/PageWrapper/PageLayout';
-import { Card } from '@/components/ui/Card/Card';
+import { Card } from '@/components/layout/Card';
 import { Button } from 'primereact/button';
 import { Bell, CheckCheck, FolderKanban, CheckSquare, AlertCircle, Clock, User, Settings as SettingsIcon, Trash2 } from 'lucide-react';
 
@@ -154,7 +154,7 @@ export function Notifications() {
         <PageLayout
             title="Notifications"
             actions={
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
                     <Button outlined onClick={markAllRead}>
                         <CheckCheck className="w-4 h-4 mr-2" />
                         Mark All Read
@@ -167,87 +167,81 @@ export function Notifications() {
             }
         >
             <div className="space-y-4">
-                {/* Filter Tabs */}
-                <Card>
-                    <div className="flex items-center gap-4">
-                        <button
-                            className={`px-4 py-2 rounded-[8px] text-[14px] font-medium transition-all ${filter === 'all'
-                                ? 'bg-[#14b8a6] text-white shadow-sm'
-                                : 'text-theme-secondary'
+                { }
+                <Card className="p-3">
+                    <div className="flex items-center gap-3">
+                        <Button unstyled
+                            className={`px-4 py-2 rounded-[8px] text-[13px] font-bold transition-all ${filter === 'all'
+                                ? 'bg-brand-teal-600 text-white shadow-sm'
+                                : 'text-slate-500 hover:bg-slate-50'
                                 }`}
                             onClick={() => setFilter('all')}
-                            onMouseEnter={(e) => { if (filter !== 'all') e.currentTarget.style.backgroundColor = 'var(--bg-hover-neutral)'; }}
-                            onMouseLeave={(e) => { if (filter !== 'all') e.currentTarget.style.backgroundColor = ''; }}
                         >
                             All ({notifications.length})
-                        </button>
-                        <button
-                            className={`px-4 py-2 rounded-[8px] text-[14px] font-medium transition-all ${filter === 'unread'
-                                ? 'bg-[#14b8a6] text-white shadow-sm'
-                                : 'text-theme-secondary'
+                        </Button>
+                        <Button unstyled
+                            className={`px-4 py-2 rounded-[8px] text-[13px] font-bold transition-all ${filter === 'unread'
+                                ? 'bg-brand-teal-600 text-white shadow-sm'
+                                : 'text-slate-500 hover:bg-slate-50'
                                 }`}
                             onClick={() => setFilter('unread')}
-                            onMouseEnter={(e) => { if (filter !== 'unread') e.currentTarget.style.backgroundColor = 'var(--bg-hover-neutral)'; }}
-                            onMouseLeave={(e) => { if (filter !== 'unread') e.currentTarget.style.backgroundColor = ''; }}
                         >
                             Unread ({unreadCount})
-                        </button>
+                        </Button>
                     </div>
                 </Card>
 
-                {/* Notifications List */}
-                <Card>
+                { }
+                <Card className="p-0 overflow-hidden" glass>
                     {displayedNotifications.length === 0 ? (
-                        <div className="notification-empty">
-                            <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                            <p className="text-[16px] font-medium mb-1" style={{ color: 'var(--text-primary)' }}>
+                        <div className="flex flex-col items-center justify-center py-16 text-center">
+                            <Bell className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+                            <p className="text-[16px] font-bold text-slate-800 dark:text-slate-200 mb-1">
                                 {filter === 'unread' ? 'No unread notifications' : 'No notifications yet'}
                             </p>
-                            <p className="text-[14px]" style={{ color: 'var(--text-secondary)' }}>
-                                {filter === 'unread' ?"You're all caught up!" :"When you receive notifications, they'll appear here."}
+                            <p className="text-[13px] text-slate-500">
+                                {filter === 'unread' ? "You're all caught up!" : "When you receive notifications, they'll appear here."}
                             </p>
                         </div>
                     ) : (
-                        <div className="-m-4">
+                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
                             {displayedNotifications.map((notification) => {
                                 const iconStyle = getNotificationIconColor(notification.type);
                                 return (
                                     <div
                                         key={notification.id}
-                                        className={`notification-item group relative ${notification.read ? '' : 'unread'}`}
+                                        className={`group relative transition-colors cursor-pointer ${notification.read
+                                                ? 'bg-transparent hover:bg-slate-50/50 dark:hover:bg-slate-800/30'
+                                                : 'bg-brand-teal-50/20 dark:bg-brand-teal-900/5 hover:bg-brand-teal-50/30 dark:hover:bg-brand-teal-900/10'
+                                            }`}
                                         onClick={() => handleClick(notification)}
                                     >
-                                        <div className="flex items-start gap-4 px-5 py-4">
-                                            {/* Icon */}
+                                        <div className="flex items-start gap-4 px-6 py-5">
                                             <div
-                                                className="w-10 h-10 rounded-[8px] flex items-center justify-center flex-shrink-0 mt-0.5"
+                                                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm border border-white/20 dark:border-slate-700/30"
                                                 style={{ backgroundColor: iconStyle.bg, color: iconStyle.color }}
                                             >
                                                 {getNotificationIcon(notification.type)}
                                             </div>
 
-                                            {/* Content */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex flex-col sm:flex-row items-start sm:justify-between gap-1.5 sm:gap-3">
                                                     <div className="min-w-0">
                                                         <div className="flex items-center gap-2">
-                                                            {!notification.read && <div className="notification-dot" />}
-                                                            <p className="notification-title text-[14px]">{notification.title}</p>
+                                                            {!notification.read && <div className="w-2 h-2 rounded-full bg-brand-teal-500 animate-pulse" />}
+                                                            <p className={`text-[14px] font-bold ${notification.read ? 'text-slate-700 dark:text-slate-300' : 'text-slate-900 dark:text-white'}`}>{notification.title}</p>
                                                         </div>
-                                                        <p className="notification-message mt-1 sm:line-clamp-2">{notification.message}</p>
+                                                        <p className={`text-[13px] mt-1 line-clamp-2 ${notification.read ? 'text-slate-500' : 'text-slate-700 dark:text-slate-300'}`}>{notification.message}</p>
                                                     </div>
-                                                    <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto mt-2 sm:mt-0 flex-shrink-0">
-                                                        <span className="notification-time text-[12px] whitespace-nowrap">{notification.time}</span>
-                                                        <button
-                                                            className="header-icon-btn p-1.5 sm:opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto mt-2 sm:mt-0 flex-shrink-0">
+                                                        <span className="text-[11px] font-medium text-slate-400 whitespace-nowrap">{notification.time}</span>
+                                                        <Button unstyled
+                                                            className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500"
                                                             onClick={(e) => deleteNotification(notification.id, e)}
                                                             title="Delete notification"
-                                                            style={{ opacity: undefined }}
-                                                            onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.backgroundColor = 'var(--bg-hover-neutral)'; }}
-                                                            onMouseLeave={(e) => { e.currentTarget.style.opacity = ''; e.currentTarget.style.backgroundColor = ''; }}
                                                         >
-                                                            <Trash2 className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
-                                                        </button>
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </Button>
                                                     </div>
                                                 </div>
                                             </div>

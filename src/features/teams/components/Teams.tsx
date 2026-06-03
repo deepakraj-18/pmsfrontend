@@ -1,14 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { StatCard } from '@/components/ui/Card/StatCard';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PageLayout } from '@/layouts/PageWrapper/PageLayout';
-import { Button } from 'primereact/button';
-import { DataTable, Column } from '@/components/DataTable/DataTable';
-import { StatusBadge } from '@/components/ui/Badge/StatusBadge';
-import { TableSkeleton } from '@/components/ui/Skeleton/TableSkeleton';
-import { Plus, UsersRound, Users, FolderKanban, Building, ChevronRight } from 'lucide-react';
-import { teamsService, Team as ApiTeam } from '@/features/teams/services/teams.api';
-
+import { EntityPageTemplate } from '@/components/layout/EntityPageTemplate';
+import { StatCardProps } from '@/components/data-display/StatCard';
+import { Button } from '@/components/forms/Button';
+import { DataTable, DataTableColumn } from '@/components/data-display/DataTable';
+import { TableSkeleton } from '@/components/feedback/Skeleton/TableSkeleton';
+import { Plus, UsersRound, Users, FolderKanban, ChevronRight } from 'lucide-react';
+import { teamsService, Team as ApiTeam } from '@/features/teams/api/teams.api';
 
 export function Teams() {
   const navigate = useNavigate();
@@ -22,12 +20,19 @@ export function Teams() {
       .finally(() => setLoading(false));
   }, []);
 
-  const columns: Column<ApiTeam>[] = [
+  const filteredTeams = useMemo(() => {
+
+    return teams.filter(t =>
+      true
+    );
+  }, [teams]);
+
+  const columns: DataTableColumn<ApiTeam>[] = [
     {
       key: 'public_id',
       header: 'Team ID',
       sortable: true,
-      render: (v) => <span className="font-mono text-xs font-bold text-slate-500">{v as string}</span>
+      render: (v) => <span className="font-mono text-[11px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">{v as string}</span>
     },
     {
       key: 'name',
@@ -40,7 +45,6 @@ export function Teams() {
           </div>
           <div>
             <p className="font-bold text-sm text-slate-800 dark:text-slate-200">{v as string}</p>
-            {row.department?.name && <p className="text-xs text-slate-500">{row.department.name}</p>}
           </div>
         </div>
       )
@@ -49,7 +53,7 @@ export function Teams() {
       key: 'lead_id',
       header: 'Team Lead',
       render: (_, row: any) => row.lead
-        ? <span className="font-semibold text-sm text-slate-700 dark:text-slate-300">{row.lead.first_name} {row.lead.last_name}</span>
+        ? <span className="font-medium text-[13px] text-slate-700 dark:text-slate-300">{row.lead.first_name} {row.lead.last_name}</span>
         : <span className="text-xs text-slate-400 italic">None assigned</span>
     },
     {
@@ -64,64 +68,55 @@ export function Teams() {
       )
     },
     {
-      key: 'dept_id',
-      header: 'Department',
-      render: (_, row: any) => row.department?.name
-        ? <StatusBadge status={row.department.name} variant="status" />
-        : <span className="text-xs text-slate-400 italic">—</span>
-    },
-    {
       key: 'id',
       header: '',
       render: (_, row) => (
         <Button
-          text
+          variant="ghost"
           onClick={(e) => { e.stopPropagation(); navigate(`/teams/${row.id}`); }}
-          className="!w-auto"
+          className="w-8 h-8 !p-0"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-4 h-4 text-slate-400" />
         </Button>
       )
     }
   ];
 
   const totalMembers = teams.reduce((acc, t) => acc + (t.members_count || 0), 0);
-  const totalDeps = new Set(teams.map(t => (t as any).department?.id || t.dept_id).filter(Boolean)).size;
+
+  const statsProps: StatCardProps[] = [
+    { label: 'Total Teams', value: teams.length, icon: <UsersRound size={18} strokeWidth={2} />, accentVariant: 'teal' },
+    { label: 'Total Members', value: totalMembers, icon: <Users size={18} strokeWidth={2} />, accentVariant: 'violet' },
+    { label: 'Active Projects', value: 0, icon: <FolderKanban size={18} strokeWidth={2} />, accentVariant: 'amber' }
+  ];
 
   return (
-    <PageLayout
+    <EntityPageTemplate
       title="Teams"
-      isFullHeight
-      actions={
-        <Button onClick={() => navigate('/teams/create')} className="btn-gradient">
-          <Plus className="w-4 h-4 mr-2" /> Create Team
+      stats={statsProps}
+
+      headerActions={
+        <Button variant="primary" size="md" onClick={() => navigate('/teams/create')}>
+          <Plus size={16} className="mr-2" />
+          Create Team
         </Button>
       }
     >
-      <div className="h-full flex flex-col space-y-5 overflow-hidden">
-        {/* StatCards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 flex-shrink-0">
-          <StatCard label="Total Teams" value={teams.length} icon={<UsersRound className="w-5 h-5" />} />
-          <StatCard label="Total Members" value={totalMembers} icon={<Users className="w-5 h-5" />} />
-          <StatCard label="Active Projects" value={0} icon={<FolderKanban className="w-5 h-5" />} />
-          <StatCard label="Departments" value={totalDeps} icon={<Building className="w-5 h-5" />} />
+      {loading ? (
+        <div className="p-4 space-y-4">
+          <TableSkeleton rows={8} columns={5} />
         </div>
-
-        {/* Table */}
-        <div className="flex-1 min-h-0 overflow-auto rounded-2xl border border-slate-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl shadow-sm">
-          {loading ? (
-            <TableSkeleton rows={8} columns={6} />
-          ) : (
-            <DataTable
-              columns={columns}
-              data={teams}
-              selectable
-              onRowClick={(team) => navigate(`/teams/${team.id}`)}
-              itemsPerPage={20}
-            />
-          )}
+      ) : (
+        <div className="flex-1 flex flex-col min-h-0 h-full bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-[var(--shadow-premium)] overflow-hidden relative">
+          <DataTable
+            columns={columns}
+            data={filteredTeams}
+            selectable
+            onRowClick={(team) => navigate(`/teams/${team.id}`)}
+            itemsPerPage={20}
+          />
         </div>
-      </div>
-    </PageLayout>
+      )}
+    </EntityPageTemplate>
   );
 }

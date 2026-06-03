@@ -1,10 +1,10 @@
 import React from 'react';
-import { Calendar, CalendarChangeEvent } from 'primereact/calendar';
+import { Calendar } from 'primereact/calendar';
 import { cn } from '@/utils/cn';
 
 interface SharedCalendarProps {
-  value?: Date | Date[] | null;
-  onChange: (value: Date | null | Date[] | undefined) => void;
+  value?: Date | null;
+  onChange: (value: Date | null | undefined) => void;
   disableFuture?: boolean;
   placeholder?: string;
   className?: string;
@@ -12,7 +12,7 @@ interface SharedCalendarProps {
 }
 
 const SharedCalendar: React.FC<SharedCalendarProps> = ({
-  value = new Date(),
+  value,
   onChange,
   disableFuture = false,
   placeholder = 'Select Date',
@@ -25,8 +25,8 @@ const SharedCalendar: React.FC<SharedCalendarProps> = ({
     <div className={cn('w-full flex flex-col', className)}>
       <Calendar
         {...props}
-        value={value}
-        onChange={(e: CalendarChangeEvent) => onChange(e.value)}
+        value={value ?? undefined}
+        onChange={(e) => onChange(e.value as Date | null | undefined)}
         maxDate={maxDate}
         placeholder={placeholder}
         showIcon

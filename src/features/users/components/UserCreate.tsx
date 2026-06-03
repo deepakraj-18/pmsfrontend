@@ -1,22 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { PageLayout } from '@/layouts/PageWrapper/PageLayout';
-import { Input } from '@/components/ui/Input/Input';
-import { SearchableMultiSelect } from '@/components/ui/SearchableMultiSelect/SearchableMultiSelect';
-import { mastersService, MasterResponse } from '@/api/masters.api';
+import { TextInput } from '@/components/forms/TextInput';
+import SearchableMultiSelect from '@/components/core/SearchableMultiSelect';
 import SharedCalendar from '@/components/core/SharedCalendar';
 import ServerSearchDropdown from '@/components/core/ServerSearchDropdown';
-import { useApi } from '@/hooks/useApi';
-import { useForm } from '@/hooks/useForm';
-import { FormHeader, FormField, FormCard } from '@/components/ui/Form';
+import { UserAutocomplete } from '@/components/core/UserAutocomplete';
+import { useUserActions } from '../hooks/useUserActions';
+import { userSchema, UserFormValues } from '../api/users.api';
+import { formatLocalDate } from '@/utils/dateHelpers';
+import { FormHeader, FormField, FormCard } from '@/components/forms/Form';
 import { UserPlus } from 'lucide-react';
 
 export function UserCreate() {
   const navigate = useNavigate();
-  const { post, isSubmitting } = useApi();
+  const { createUser } = useUserActions();
+  const isSubmitting = createUser.isPending;
 
-  const { form, setValues, handleInputChange, isFormValid } = useForm({
-    initialValues: {
+  const { control, handleSubmit, setValue, watch, formState: { errors, isValid } } = useForm<UserFormValues>({
+    resolver: zodResolver(userSchema) as any,
+    defaultValues: {
       first_name: '',
       last_name: '',
       email: '',
@@ -24,103 +29,191 @@ export function UserCreate() {
       employee_id: '',
       job_title: '',
       username: '',
-      role_id: null as any,
-      status_id: null as any,
-      dept_id: null as any,
-      manager_id: null as any,
+      role_id: null,
+      status_id: null,
+      manager_email: null,
       join_date: new Date(),
-    },
-    requiredFields: ['first_name', 'last_name', 'email', 'employee_id']
+    }
   });
 
-  const [selectedSkills, setSelectedSkills] = useState<Set<number>>(new Set());
-  const [skills, setSkills] = useState<MasterResponse[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<any[]>([]);
 
-  useEffect(() => {
-    mastersService.getSkills().then(setSkills).catch(console.error);
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: UserFormValues) => {
     try {
       const extractId = (val: any) => {
         if (!val || val === '') return null;
         return typeof val === 'object' ? val.id : val;
       };
+
       const payload: any = {
-        ...form,
-        role_id: extractId(form.role_id),
-        status_id: extractId(form.status_id),
-        dept_id: extractId(form.dept_id),
-        manager_id: extractId(form.manager_id),
+        ...data,
+        role_id: extractId(data.role_id),
+        status_id: extractId(data.status_id),
+        manager_email: data.manager_email?.mail || data.manager_email?.email || data.manager_email || null,
       };
+
       if (!payload.username && payload.email) payload.username = payload.email.split('@')[0];
-      ['phone', 'job_title'].forEach(key => { if (payload[key] === '') payload[key] = null; });
-      payload.join_date = payload.join_date ? new Date(payload.join_date).toISOString().split('T')[0] : null;
-      payload.skill_ids = Array.from(selectedSkills);
-      await post('/users/', payload, 'User created successfully!');
+
+      ['phone', 'job_title'].forEach(key => {
+        if (payload[key] === '') payload[key] = null;
+      });
+
+      payload.join_date = formatLocalDate(payload.join_date);
+      payload.skill_ids = selectedSkills.map((s: any) => (typeof s === 'object' ? s.id : s));
+
+      await createUser.mutateAsync(payload);
       navigate('/users');
     } catch (error: any) {
       console.error('Failed to create user', error);
     }
   };
 
-  const set = (field: string, val: any) => setValues(prev => ({...prev, [field]: val}));
-
   return (
     <PageLayout title="Create New User" showBackButton backPath="/users">
-      <form onSubmit={handleSubmit} className="max-w-[1200px] mx-auto">
-        <FormHeader icon={UserPlus} title="User Details" subtitle="Fill in the information below to add a new team member" color="blue" />
+      <form onSubmit={handleSubmit(onSubmit)} className="max-w-[1200px] mx-auto">
+        <FormHeader
+          icon={UserPlus}
+          title="User Details"
+          subtitle="Fill in the information below to add a new team member"
+          color="blue"
+        />
 
         <FormCard
           columns={3}
-          footer={{ onCancel: () => navigate('/users'), submitLabel: 'Create User', submittingLabel: 'Creating...', isSubmitting, isDisabled: !isFormValid }}
+          footer={{
+            onCancel: () => navigate('/users'),
+            submitLabel: 'Create User',
+            submittingLabel: 'Creating...',
+            isSubmitting,
+            isDisabled: !isValid
+          }}
         >
-          <FormField label="First Name" required>
-            <Input name="first_name" value={form.first_name} onChange={handleInputChange} placeholder="First name" className="h-10" required />
-          </FormField>
-          <FormField label="Last Name" required>
-            <Input name="last_name" value={form.last_name} onChange={handleInputChange} placeholder="Last name" className="h-10" required />
-          </FormField>
-          <FormField label="Email" required>
-            <Input name="email" value={form.email} onChange={handleInputChange} type="email" placeholder="user@example.com" className="h-10" required />
+          <FormField label="First Name" required error={errors.first_name}>
+            <Controller
+              name="first_name"
+              control={control}
+              render={({ field }) => (
+                <TextInput {...field} placeholder="First name" className="h-10" />
+              )}
+            />
           </FormField>
 
-          <FormField label="Employee ID" required>
-            <Input name="employee_id" value={form.employee_id} onChange={handleInputChange} placeholder="e.g. EMP-001" className="h-10" required />
+          <FormField label="Last Name" error={errors.last_name}>
+            <Controller
+              name="last_name"
+              control={control}
+              render={({ field }) => (
+                <TextInput {...field} value={field.value || ''} placeholder="Last name" className="h-10" />
+              )}
+            />
           </FormField>
-          <FormField label="Phone">
-            <Input name="phone" value={form.phone} onChange={handleInputChange} type="tel" placeholder="+1 (555) 000-0000" className="h-10" />
+
+          <FormField label="Email" required error={errors.email}>
+            <Controller
+              name="email"
+              control={control}
+              render={({ field }) => (
+                <TextInput {...field} type="email" placeholder="user@example.com" className="h-10" />
+              )}
+            />
           </FormField>
-          <FormField label="Job Title">
-            <Input name="job_title" value={form.job_title} onChange={handleInputChange} placeholder="Job title" className="h-10" />
+
+          <FormField label="Employee ID" required error={errors.employee_id}>
+            <Controller
+              name="employee_id"
+              control={control}
+              render={({ field }) => (
+                <TextInput {...field} placeholder="e.g. EMP-001" className="h-10" />
+              )}
+            />
+          </FormField>
+
+          <FormField label="Phone" error={errors.phone}>
+            <Controller
+              name="phone"
+              control={control}
+              render={({ field }) => (
+                <TextInput {...field} value={field.value || ''} type="tel" placeholder="+1 (555) 000-0000" className="h-10" />
+              )}
+            />
+          </FormField>
+
+          <FormField label="Job Title" error={errors.job_title}>
+            <Controller
+              name="job_title"
+              control={control}
+              render={({ field }) => (
+                <TextInput {...field} value={field.value || ''} placeholder="Job title" className="h-10" />
+              )}
+            />
           </FormField>
 
           <FormField label="Role">
-            <ServerSearchDropdown entityType="masters/roles" value={form.role_id} onChange={v => set('role_id', v)} placeholder="Select Role" />
+            <Controller
+              name="role_id"
+              control={control}
+              render={({ field }) => (
+                <ServerSearchDropdown
+                  entityType="masters/roles"
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Select Role"
+                />
+              )}
+            />
           </FormField>
+
           <FormField label="Status">
-            <ServerSearchDropdown entityType="masters/user-statuses" value={form.status_id} onChange={v => set('status_id', v)} placeholder="Select Status" />
-          </FormField>
-          <FormField label="Department">
-            <ServerSearchDropdown entityType="departments" value={form.dept_id} onChange={v => set('dept_id', v)} placeholder="Select Department" />
+            <Controller
+              name="status_id"
+              control={control}
+              render={({ field }) => (
+                <ServerSearchDropdown
+                  entityType="masters/user-statuses"
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Select Status"
+                />
+              )}
+            />
           </FormField>
 
           <FormField label="Manager">
-            <ServerSearchDropdown entityType="users" value={form.manager_id} onChange={v => set('manager_id', v)} placeholder="Select Manager" />
+            <Controller
+              name="manager_email"
+              control={control}
+              render={({ field }) => (
+                <UserAutocomplete
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Search Manager"
+                />
+              )}
+            />
           </FormField>
+
           <FormField label="Start Date">
-            <SharedCalendar value={form.join_date} onChange={v => set('join_date', v)} />
+            <Controller
+              name="join_date"
+              control={control}
+              render={({ field }) => (
+                <SharedCalendar
+                  value={field.value}
+                  onChange={field.onChange}
+                />
+              )}
+            />
           </FormField>
-          <div>{/* Grid spacer */}</div>
+
+          <div />
 
           <FormField label="Skills & Capabilities" className="md:col-span-2 lg:col-span-3">
             <SearchableMultiSelect
-              options={skills.map(s => ({ id: s.id, label: s.name }))}
-              selectedIds={selectedSkills}
+              entityType="masters/skills"
+              value={selectedSkills}
               onChange={setSelectedSkills}
-              placeholder={skills.length === 0 ?"No skills available" :"Search and select skills..."}
-              emptyMessage="No skills available"
+              placeholder="Search and select skills..."
+              field="name"
             />
           </FormField>
         </FormCard>

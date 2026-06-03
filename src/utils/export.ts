@@ -1,10 +1,3 @@
-/**
- * Generic utility to export an array of typed objects into a downloadable CSV file.
- * 
- * @param data Array of objects to export
- * @param filename Name of the output file (e.g., 'projects.csv')
- * @param columns Optional map of object keys to custom CSV headers
- */
 export function exportToCSV<T extends Record<string, any>>(
     data: T[],
     filename: string,
@@ -14,7 +7,6 @@ export function exportToCSV<T extends Record<string, any>>(
         return;
     }
 
-    // Determine headers
     let headers: string[] = [];
     let keys: (keyof T | string)[] = [];
 
@@ -26,16 +18,12 @@ export function exportToCSV<T extends Record<string, any>>(
         headers = keys as string[];
     }
 
-    // Generate CSV rows
     const csvRows = [];
 
-    // Add header row
     csvRows.push(headers.map(header => `"${String(header).replace(/"/g, '""')}"`).join(','));
 
-    // Add data rows
     for (const row of data) {
         const values = keys.map(key => {
-            // Handle nested paths like 'manager.first_name' roughly (for complex objects consider flattening first)
             const keyString = String(key);
             let val = row[keyString];
 

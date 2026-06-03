@@ -1,20 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { StatCard } from '@/components/ui/Card/StatCard';
 import { useNavigate } from 'react-router-dom';
-import { PageLayout } from '@/layouts/PageWrapper/PageLayout';
-import { Button } from 'primereact/button';
-import { DataTable, Column } from '@/components/DataTable/DataTable';
-import { StatusBadge } from '@/components/ui/Badge/StatusBadge';
-import { TableSkeleton } from '@/components/ui/Skeleton/TableSkeleton';
-import { Plus, Filter as FilterIcon } from 'lucide-react';
-import { usersService, User as ApiUser } from '@/features/users/services/users.api';
+import { EntityPageTemplate } from '@/components/layout/EntityPageTemplate';
+import { Button } from '@/components/forms/Button';
+import { StatCardProps } from '@/components/data-display/StatCard';
+import { DataTable, DataTableColumn } from '@/components/data-display/DataTable';
+import { Badge } from '@/components/data-display/Badge';
+import { TableSkeleton } from '@/components/feedback/Skeleton/TableSkeleton';
+import { Plus, Users, UserPlus, CheckCircle, UserX } from 'lucide-react';
+import { usersService, User as ApiUser } from '@/features/users/api/users.api';
 import { format } from 'date-fns';
-import { FilterSidebar } from '@/components/ui/FilterSidebar';
-import { useRoles, useDepartments } from '@/hooks/useMasterData';
+import { FilterSidebar } from '@/components/layout/FilterSidebar';
+import { useRolesLookup } from '@/features/masters/hooks/useMasters';
 import { useFilters } from '@/hooks/useFilters';
-import { UserAvatar } from '@/components/ui/UserAvatar/UserAvatar';
-import { Users, UserPlus, CheckCircle } from 'lucide-react';
-
+import { UserAvatar } from '@/components/data-display/UserAvatar/UserAvatar';
 
 export function UsersList() {
   const navigate = useNavigate();
@@ -22,8 +20,7 @@ export function UsersList() {
   const [users, setUsers] = useState<ApiUser[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const { data: roles = [] } = useRoles();
-  const { data: departments = [] } = useDepartments();
+  const { data: roles = [] } = useRolesLookup();
 
   const {
     showFilters, selectedFilters, openFilters, closeFilters,
@@ -49,22 +46,28 @@ export function UsersList() {
       id: 'role',
       label: 'Role',
       options: roles.map(r => ({ label: r.name, value: r.id.toString() }))
-    },
-    {
-      id: 'department',
-      label: 'Department',
-      options: departments.map(d => ({ label: d.name, value: d.id.toString() }))
     }
   ];
 
   const filteredUsers = useMemo(() => {
-    return users.filter(user => isMatch({
-      role: user.role_id,
-      department: (user as any).dept_id || (user as any).department_id,
-    }));
+    return users.filter(user => {
+      const matchFilter = isMatch({ role: user.role_id });
+      const matchSearch = true;
+      return matchFilter && matchSearch;
+    });
   }, [users, isMatch]);
 
-  const columns: Column<ApiUser>[] = [
+  const statsProps: StatCardProps[] = useMemo(() => {
+    if (loading) return [];
+    return [
+      { label: 'Total Users', value: users.length, icon: <Users size={18} strokeWidth={2} />, accentVariant: 'teal' },
+      { label: 'Active', value: users.filter(u => u.status?.name === 'Active' || !u.status).length, icon: <CheckCircle size={18} strokeWidth={2} />, accentVariant: 'violet' },
+      { label: 'Inactive', value: users.filter(u => u.status?.name === 'Inactive').length, icon: <UserX size={18} strokeWidth={2} />, accentVariant: 'rose' },
+      { label: 'New (7d)', value: users.filter(u => new Date((u as any).created_at || new Date()).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000).length, icon: <UserPlus size={18} strokeWidth={2} />, accentVariant: 'amber' }
+    ];
+  }, [users, loading]);
+
+  const columns: DataTableColumn<ApiUser>[] = [
     {
       key: 'name',
       header: 'User',
@@ -73,8 +76,8 @@ export function UsersList() {
         <div className="flex items-center gap-3">
           <UserAvatar firstName={row.first_name} lastName={row.last_name} size="md" />
           <div className="flex flex-col">
-            <span className="text-[14px] font-semibold text-theme-primary antialiased capitalize">{row.first_name || row.username} {row.last_name || ''}</span>
-            <span className="text-[12px] text-theme-muted font-normal">{row.email}</span>
+            <span className="text-[14px] font-semibold text-slate-800 dark:text-slate-200 antialiased capitalize">{row.first_name || row.username} {row.last_name || ''}</span>
+            <span className="text-[12px] text-slate-500 font-normal">{row.email}</span>
           </div>
         </div>
       )
@@ -83,78 +86,54 @@ export function UsersList() {
       key: 'role',
       header: 'Role',
       sortable: true,
-      render: (_, row) => <span>{row.role?.name || row.role_id || '-'}</span>
-    },
-    {
-      key: 'department',
-      header: 'Department',
-      sortable: true,
-      render: (_, row) => <span>{row.department?.name || (row as any).department_id || '-'}</span>
+      render: (_, row) => <span className="text-slate-600 dark:text-slate-400">{row.role?.name || row.role_id || '-'}</span>
     },
     {
       key: 'status',
       header: 'Status',
       sortable: true,
-      render: (_, row) => <StatusBadge status={row.status?.name ||"Active"} variant="status" />
+      render: (_, row) => <Badge value={row.status?.name || "Active"} variant="status" />
     },
     {
       key: 'join_date',
       header: 'Join Date',
       sortable: true,
-      render: (value) => <span>{value ? format(new Date(value as string), 'MMM d, yyyy') : '-'}</span>
+      render: (value) => <span className="text-slate-600 dark:text-slate-400">{value ? format(new Date(value as string), 'MMM d, yyyy') : '-'}</span>
     },
   ];
 
   return (
-    <PageLayout
+    <EntityPageTemplate
       title="Users"
-      isFullHeight
-      actions={
-        <div className="flex gap-2">
-          <Button outlined onClick={openFilters} className={hasActiveFilters ? 'border-brand-teal-500 bg-brand-teal-50 text-brand-teal-700' : ''}>
-            <FilterIcon className="w-4 h-4 mr-2" />
-            Filters
-          </Button>
-          <Button onClick={() => navigate('/users/create')} className="btn-gradient">
-            <Plus className="w-4 h-4 mr-2" />
-            Add User
-          </Button>
-        </div>
+      stats={statsProps}
+      filterGroups={filterGroups}
+      selectedFilters={selectedFilters}
+      onFilterChange={handleFilterChange}
+      onClearFilters={clearFilters}
+      hasActiveFilters={hasActiveFilters}
+      activeFilterCount={Object.values(selectedFilters).flat().length}
+      headerActions={
+        <Button variant="primary" size="md" onClick={() => navigate('/users/create')}>
+          <Plus size={16} className="mr-2" />
+          Add User
+        </Button>
       }
     >
-      <div className="h-full flex flex-col overflow-hidden space-y-6">
-        {/* Detailed Stats Grid aligned with Teal Brand */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 flex-shrink-0">
-          <StatCard label="Total Users" value={users.length} icon={<Users className="w-5 h-5" />} />
-          <StatCard label="Active" value={users.filter(u => u.status?.name === 'Active' || !u.status).length} icon={<CheckCircle className="w-5 h-5" />} />
-          <StatCard label="New (7d)" value={users.filter(u => new Date((u as any).created_at || new Date()).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000).length} icon={<UserPlus className="w-5 h-5" />} />
+      {loading ? (
+        <div className="space-y-4 p-4">
+          <TableSkeleton rows={8} columns={4} />
         </div>
-
-        {loading ? (
-          <div className="space-y-4">
-            <TableSkeleton rows={8} columns={5} />
-          </div>
-        ) : (
-          <div className="flex-1 overflow-auto rounded-2xl border border-slate-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl shadow-sm">
-            <DataTable
-              columns={columns}
-              data={filteredUsers}
-              selectable
-              onRowClick={(user) => navigate(`/users/${user.id}`)}
-              itemsPerPage={10}
-            />
-          </div>
-        )}
-      </div>
-
-      <FilterSidebar
-        isOpen={showFilters}
-        onClose={closeFilters}
-        groups={filterGroups}
-        selectedFilters={selectedFilters}
-        onFilterChange={handleFilterChange}
-        onClear={clearFilters}
-      />
-    </PageLayout>
+      ) : (
+        <div className="flex-1 flex flex-col min-h-0 h-full bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/60 dark:border-slate-800 shadow-[var(--shadow-premium)] overflow-hidden relative">
+          <DataTable
+            columns={columns}
+            data={filteredUsers}
+            selectable
+            onRowClick={(user) => navigate(`/users/${user.id}`)}
+            itemsPerPage={20}
+          />
+        </div>
+      )}
+    </EntityPageTemplate>
   );
 }

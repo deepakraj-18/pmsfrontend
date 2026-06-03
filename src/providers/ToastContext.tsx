@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { Button } from 'primereact/button';
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
@@ -35,6 +36,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         }, 4000);
     }, []);
 
+    useEffect(() => {
+        const handler = (e: Event) => {
+            const { type, title, message } = (e as CustomEvent).detail;
+            showToast(type as ToastType, title, message);
+        };
+        window.addEventListener('pms:toast', handler);
+        return () => window.removeEventListener('pms:toast', handler);
+    }, [showToast]);
+
     const removeToast = (id: number) => {
         setToasts(prev => prev.filter(t => t.id !== id));
     };
@@ -50,18 +60,17 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
     const getStyles = (type: ToastType) => {
         switch (type) {
-            case 'success': return { bg: '#F0FDF4', border: '#A7F3D0', text: '#065F46', icon: '#14b8a6' };
-            case 'error': return { bg: '#FEF2F2', border: '#FECACA', text: '#991B1B', icon: '#DC2626' };
-            case 'warning': return { bg: '#FFFBEB', border: '#FDE68A', text: '#92400E', icon: '#D97706' };
-            case 'info': return { bg: '#EFF6FF', border: '#BFDBFE', text: '#1E40AF', icon: '#3B82F6' };
+            case 'success': return { bg: '#f0fdfa', border: '#14b8a6', text: '#0f172a', icon: '#0d9488' };
+            case 'error': return { bg: '#fef2f2', border: '#ef4444', text: '#0f172a', icon: '#dc2626' };
+            case 'warning': return { bg: '#fffbeb', border: '#f59e0b', text: '#0f172a', icon: '#d97706' };
+            case 'info': return { bg: '#f0f9ff', border: '#3b82f6', text: '#0f172a', icon: '#2563eb' };
         }
     };
 
     return (
         <ToastContext.Provider value={{ showToast }}>
             {children}
-            {/* Toast container */}
-            <div className="fixed top-20 right-6 z-[100] flex flex-col gap-3 pointer-events-none">
+            <div className="fixed top-6 right-6 z-[1000] flex flex-col gap-3 pointer-events-none">
                 {toasts.map((toast) => {
                     const styles = getStyles(toast.type);
                     return (
@@ -87,13 +96,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                                     </p>
                                 )}
                             </div>
-                            <button
+                            <Button unstyled
                                 onClick={() => removeToast(toast.id)}
                                 className="toast-close"
                                 style={{ color: styles.text }}
                             >
                                 <X className="w-4 h-4" />
-                            </button>
+                            </Button>
                         </div>
                     );
                 })}

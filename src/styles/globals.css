@@ -1,13 +1,4 @@
-/*
- * globals.css — Primary CSS entry imported by main.tsx
- *
- * Import order is semantically significant:
- *   1. fonts.css   — CSS custom properties for font stacks (fonts load via <link> in index.html)
- *   2. tailwind.css — Tailwind v4 @theme tokens + @import 'tailwindcss' (layered internally)
- *
- * theme.scss, components.scss, and PrimeReact CSS are imported separately
- * in main.tsx AFTER this file — their unlayered styles automatically beat
- * Tailwind's @layer base resets per the CSS Cascade specification.
- */
+@import "tailwindcss";
+
 @import './fonts.css';
 @import './tailwind.css';

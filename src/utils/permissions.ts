@@ -1,100 +1,118 @@
-/**
- * Central RBAC permission utility.
- * All role checks should go through these helpers — never hardcode role strings elsewhere.
- */
-
 export const ROLES = {
   ADMIN: 'Admin',
-  PROJECT_MANAGER: 'Project Manager',
   TEAM_LEAD: 'Team Lead',
   EMPLOYEE: 'Employee',
 } as const;
 
 export type Role = typeof ROLES[keyof typeof ROLES];
 
-// ── Role predicate helpers ───────────────────────────────────
-export const isAdmin = (role?: string | null): boolean =>
-  role === ROLES.ADMIN;
+export interface UserRole {
+  id: number;
+  name: string;
+  permissions?: Record<string, any>;
+}
 
-export const isProjectManager = (role?: string | null): boolean =>
-  role === ROLES.PROJECT_MANAGER;
+export const checkPermission = (role: UserRole | null | undefined, permissionId: string): boolean => {
+  if (!role) return false;
 
-export const isTeamLead = (role?: string | null): boolean =>
-  role === ROLES.TEAM_LEAD;
+  const roleName = role.name?.toLowerCase();
+  if (roleName === ROLES.ADMIN.toLowerCase()) return true;
 
-export const isEmployee = (role?: string | null): boolean =>
-  role === ROLES.EMPLOYEE;
+  if (role.permissions) {
+    const val = role.permissions[permissionId];
+    // Accept boolean true OR any string value ('O', 'A', 'All') as a valid permission
+    if (val === true || val === 'O' || val === 'A' || val === 'All') {
+      return true;
+    }
+  }
 
-/** Admin OR Project Manager — full access level */
-export const isFullAccess = (role?: string | null): boolean =>
-  role === ROLES.ADMIN || role === ROLES.PROJECT_MANAGER;
-
-/** Team Lead and above (Admin, PM, TL) */
-export const isTeamLeadOrAbove = (role?: string | null): boolean =>
-  role === ROLES.ADMIN || role === ROLES.PROJECT_MANAGER || role === ROLES.TEAM_LEAD;
-
-/** Employee only — most restricted */
-export const isEmployeeOnly = (role?: string | null): boolean =>
-  role === ROLES.EMPLOYEE;
-
-// ── Capability checks ────────────────────────────────────────
-export const can = {
-  // Projects
-  createProject:   (role?: string | null) => isFullAccess(role),
-  editProject:     (role?: string | null) => isTeamLeadOrAbove(role),
-  deleteProject:   (role?: string | null) => isFullAccess(role),
-  assignToProject: (role?: string | null) => isTeamLeadOrAbove(role),
-
-  // Tasks
-  createTask: (role?: string | null) => isTeamLeadOrAbove(role),
-  deleteTask: (role?: string | null) => isTeamLeadOrAbove(role),
-  updateTask: (_role?: string | null) => true, // All roles can update (scoped by backend)
-
-  // Issues
-  createIssue: (role?: string | null) => isTeamLeadOrAbove(role),
-  deleteIssue: (role?: string | null) => isTeamLeadOrAbove(role),
-  updateIssue: (_role?: string | null) => true,
-
-  // Timelogs
-  createTimelog: (_role?: string | null) => true, // All can log time
-  deleteTimelog: (role?: string | null) => isTeamLeadOrAbove(role),
-
-  // Timesheets
-  createTimesheet: (_role?: string | null) => true,
-  deleteTimesheet: (role?: string | null) => isTeamLeadOrAbove(role),
-
-  // User management
-  createUser:   (role?: string | null) => isFullAccess(role),
-  deleteUser:   (role?: string | null) => isFullAccess(role),
-  manageUsers:  (role?: string | null) => isFullAccess(role),
-
-  // Navigation / page access
-  viewDashboard:     (_role?: string | null) => true,
-  viewProjects:      (_role?: string | null) => true,
-  viewTasks:         (_role?: string | null) => true,
-  viewIssues:        (_role?: string | null) => true,
-  viewTimeLogs:      (_role?: string | null) => true,
-  viewTimesheets:    (_role?: string | null) => true,
-  viewNotifications: (_role?: string | null) => true,
-  viewSettings:      (_role?: string | null) => true,
-  viewProfile:       (_role?: string | null) => true,
-
-  // Restricted pages (TL and above)
-  viewReports:       (role?: string | null) => isTeamLeadOrAbove(role),
-  viewMilestones:    (role?: string | null) => isTeamLeadOrAbove(role),
-
-  // Management pages (Admin/PM only)
-  viewUsers:         (role?: string | null) => isFullAccess(role),
-  viewTeams:         (role?: string | null) => isFullAccess(role),
-  viewRoles:         (role?: string | null) => isFullAccess(role),
+  return false;
 };
 
-// ── Settings tab access ──────────────────────────────────────
+/** Get the specific view level for a permission: 'O' | 'A' | 'All' | null */
+export const getViewLevel = (role: UserRole | null | undefined, permissionId: string): string | null => {
+  if (!role) return null;
+
+  const roleName = role.name?.toLowerCase();
+  if (roleName === ROLES.ADMIN.toLowerCase()) return 'All';
+
+  if (role.permissions) {
+    const val = role.permissions[permissionId];
+    if (val === true || val === 'All') return 'All';
+    if (val === 'O') return 'O';
+    if (val === 'A') return 'A';
+  }
+
+  return null;
+};
+
+export const isAdmin = (role?: string | null): boolean =>
+  role?.toLowerCase() === ROLES.ADMIN.toLowerCase();
+
+export const isTeamLead = (role?: string | null): boolean =>
+  role?.toLowerCase() === ROLES.TEAM_LEAD.toLowerCase();
+
+export const isEmployee = (role?: string | null): boolean =>
+  role?.toLowerCase() === ROLES.EMPLOYEE.toLowerCase();
+
+export const isFullAccess = (role?: string | null): boolean =>
+  isAdmin(role);
+
+export const isTeamLeadOrAbove = (role?: string | null): boolean =>
+  isFullAccess(role) || isTeamLead(role);
+
+export const isEmployeeOnly = (role?: string | null): boolean =>
+  isEmployee(role);
+
+export const can = {
+  createProject: (role?: UserRole | null) => checkPermission(role, 'proj-create'),
+  editProject: (role?: UserRole | null) => checkPermission(role, 'proj-edit'),
+  deleteProject: (role?: UserRole | null) => checkPermission(role, 'proj-delete'),
+  assignToProject: (role?: UserRole | null) => checkPermission(role, 'proj-assign'),
+
+  createTask: (role?: UserRole | null) => checkPermission(role, 'task-create'),
+  deleteTask: (role?: UserRole | null) => checkPermission(role, 'task-delete'),
+  updateTask: (role?: UserRole | null) => checkPermission(role, 'task-edit'),
+
+  createIssue: (role?: UserRole | null) => checkPermission(role, 'issue-create'),
+  deleteIssue: (role?: UserRole | null) => checkPermission(role, 'issue-delete'),
+  updateIssue: (role?: UserRole | null) => checkPermission(role, 'issue-edit'),
+
+  manageTaskLists: (role?: UserRole | null) => checkPermission(role, 'task-edit'),
+
+  createTimelog: (role?: UserRole | null) => checkPermission(role, 'time-create'),
+  deleteTimelog: (role?: UserRole | null) => checkPermission(role, 'time-delete'),
+
+  createTimesheet: (role?: UserRole | null) => checkPermission(role, 'time-create'),
+  deleteTimesheet: (role?: UserRole | null) => checkPermission(role, 'time-delete'),
+
+  createUser: (role?: UserRole | null) => checkPermission(role, 'user-create'),
+  deleteUser: (role?: UserRole | null) => checkPermission(role, 'user-delete'),
+  manageUsers: (role?: UserRole | null) => checkPermission(role, 'user-edit'),
+
+  viewDashboard: (_role?: UserRole | null) => true,
+  viewProjects: (role?: UserRole | null) => checkPermission(role, 'proj-view'),
+  viewTasks: (role?: UserRole | null) => checkPermission(role, 'task-view'),
+  viewIssues: (role?: UserRole | null) => checkPermission(role, 'issue-view'),
+  viewTimeLogs: (role?: UserRole | null) => checkPermission(role, 'time-view'),
+  viewTimesheets: (role?: UserRole | null) => checkPermission(role, 'time-view'),
+  viewNotifications: (_role?: UserRole | null) => true,
+  viewSettings: (role?: UserRole | null) => checkPermission(role, 'settings-view'),
+  viewProfile: (_role?: UserRole | null) => true,
+
+  viewReports: (role?: UserRole | null) => checkPermission(role, 'report-view'),
+  viewMilestones: (role?: UserRole | null) => checkPermission(role, 'milestone-view'),
+
+  viewUsers: (role?: UserRole | null) => checkPermission(role, 'user-view'),
+  viewTeams: (role?: UserRole | null) => checkPermission(role, 'team-view'),
+  viewRoles: (role?: UserRole | null) => checkPermission(role, 'role-manage'),
+};
+
 export const settingsTabs = {
-  profile:         (_role?: string | null) => true,
-  notifications:   (_role?: string | null) => true,
-  organization:    (role?: string | null) => isFullAccess(role),
-  users:           (role?: string | null) => isFullAccess(role),
-  security:        (role?: string | null) => isFullAccess(role),
-  integrations:    (role?: string | null) => isFullAccess(role),
+  profile: (_role?: UserRole | null) => true,
+  notifications: (_role?: UserRole | null) => true,
+  organization: (role?: UserRole | null) => checkPermission(role, 'settings-edit'),
+  users: (role?: UserRole | null) => checkPermission(role, 'user-view'),
+  security: (role?: UserRole | null) => checkPermission(role, 'settings-edit'),
+  integrations: (role?: UserRole | null) => checkPermission(role, 'settings-edit'),
 };

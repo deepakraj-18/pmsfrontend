@@ -1,5 +1,6 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { tasksService, Task } from '../services/tasks.api';
+import { tasksService, Task } from '@/api/services/tasks.service';
 
 export const taskKeys = {
     all: ['tasks'] as const,
@@ -9,10 +10,10 @@ export const taskKeys = {
     detail: (id: number) => [...taskKeys.details(), id] as const,
 };
 
-export function useTasks() {
+export function useTasks(params: any = { skip: 0, limit: 500 }) {
     return useQuery({
-        queryKey: taskKeys.lists(),
-        queryFn: () => tasksService.getTasks(0, 500),
+        queryKey: taskKeys.list(params),
+        queryFn: () => tasksService.getTasks(params),
     });
 }
 
@@ -20,7 +21,7 @@ export function useTask(id: number) {
     return useQuery({
         queryKey: taskKeys.detail(id),
         queryFn: () => tasksService.getTask(id),
-        enabled: !!id,
+        enabled: !!id && id > 0,
     });
 }
 
@@ -32,6 +33,18 @@ export function useUpdateTask() {
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: taskKeys.all });
             queryClient.invalidateQueries({ queryKey: taskKeys.detail(variables.id) });
+            queryClient.invalidateQueries({ queryKey: ['projects'] });
+        },
+    });
+}
+
+export function useDeleteTask() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: number) => tasksService.deleteTask(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: taskKeys.all });
+            queryClient.invalidateQueries({ queryKey: ['projects'] });
         },
     });
 }

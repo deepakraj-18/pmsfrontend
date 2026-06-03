@@ -1,16 +1,17 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { Button } from 'primereact/button';
 
 interface PageLayoutProps {
-  children:       React.ReactNode;
-  title?:         string;
-  subtitle?:      string;   // optional page-level sub-caption
-  actions?:       React.ReactNode;
-  isFullHeight?:  boolean;
+  children: React.ReactNode;
+  title?: React.ReactNode;
+  subtitle?: string;
+  actions?: React.ReactNode;
+  isFullHeight?: boolean;
   showBackButton?: boolean;
-  backPath?:      string;
-  onBack?:        () => void;
+  backPath?: string;
+  onBack?: () => void;
 }
 
 export function PageLayout({
@@ -19,66 +20,63 @@ export function PageLayout({
   subtitle,
   actions,
   isFullHeight,
-  showBackButton,
+  showBackButton = true,
   backPath,
   onBack,
 }: PageLayoutProps) {
+  const location = useLocation();
   const navigate = useNavigate();
 
   const handleBack = () => {
-    if (onBack)           { onBack(); }
-    else if (backPath)    { navigate(backPath); }
-    else                  { navigate(-1); }
+    if (onBack) { onBack(); }
+    else if (location.state?.from) { navigate(location.state.from); }
+    else if (backPath) { navigate(backPath); }
+    else { navigate(-1); }
   };
 
   return (
     <div
       className={`
-        transition-[padding] duration-300 ease-in-out
-        ${isFullHeight
-          ? 'h-[calc(100vh-64px)] flex flex-col overflow-hidden'
-          : 'min-h-[calc(100vh-64px)]'
-        }
+        w-full transition-all duration-300
+        ${isFullHeight ? 'h-full flex flex-col overflow-hidden' : 'min-h-full'}
       `}
     >
       <div
         className={`
-          max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6 w-full
-          ${isFullHeight ? 'flex-1 overflow-hidden flex flex-col min-h-0' : ''}
+          flex flex-col w-full px-4 sm:px-6 lg:px-8 py-6
+          ${isFullHeight ? 'flex-1 overflow-hidden min-h-0' : ''}
         `}
       >
-        {/* Page header — title + optional actions bar */}
+        { }
         {(title || actions) && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 flex-shrink-0">
-            <div className="flex items-center gap-3 min-w-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 flex-shrink-0">
+            <div className="flex items-center gap-3.5 min-w-0">
               {showBackButton && (
-                <button
-                  onClick={handleBack}
+                <Button unstyled onClick={handleBack}
                   className="
-                    flex-shrink-0 w-8 h-8 flex items-center justify-center
-                    rounded-[8px] border transition-all duration-150
-                    hover:bg-[var(--bg-hover-neutral)]
+                    flex-shrink-0 w-9 h-9 flex items-center justify-center
+                    rounded-full border transition-all duration-200
+                    hover:bg-[var(--bg-hover-neutral)] hover:scale-105 active:scale-95
+                    bg-white dark:bg-slate-800 shadow-sm
                   "
                   style={{
                     borderColor: 'var(--border-color)',
-                    color: 'var(--text-secondary)',
+                    color: 'var(--text-primary)',
                   }}
                 >
-                  <ArrowLeft size={16} />
-                </button>
+                  <ArrowLeft size={18} />
+                </Button>
               )}
               {title && (
                 <div className="min-w-0">
-                  <h1
-                    className="text-[20px] sm:text-[22px] font-bold tracking-tight leading-tight truncate"
-                    style={{ color: 'var(--text-primary)' }}
+                  <div
+                    className="text-[22px] sm:text-[24px] font-black tracking-tight leading-tight truncate text-theme-primary"
                   >
                     {title}
-                  </h1>
+                  </div>
                   {subtitle && (
                     <p
-                      className="text-[12.5px] font-medium mt-0.5"
-                      style={{ color: 'var(--text-muted)' }}
+                      className="text-[13px] font-medium mt-1 text-theme-muted"
                     >
                       {subtitle}
                     </p>
@@ -87,15 +85,17 @@ export function PageLayout({
               )}
             </div>
             {actions && (
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-2.5 w-full sm:w-auto flex-shrink-0">
+              <div className="flex items-center gap-2.5 flex-shrink-0">
                 {actions}
               </div>
             )}
           </div>
         )}
 
-        {/* Page content */}
-        <div className={isFullHeight ? 'flex-1 overflow-hidden flex flex-col min-h-0' : ''}>
+        { }
+        <div className={`
+          ${isFullHeight ? 'flex-1 overflow-hidden flex flex-col min-h-0' : 'h-full'}
+        `}>
           {children}
         </div>
       </div>

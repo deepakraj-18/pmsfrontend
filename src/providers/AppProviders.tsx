@@ -1,25 +1,32 @@
 import React from 'react';
+import { PrimeReactProvider } from 'primereact/api';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { PrimeUIProvider } from './prime';
 import { ThemeProvider } from './ThemeContext';
 import { ToastProvider } from './ToastContext';
+import { AuthProvider } from '@/auth/AuthProvider';
 
-// Configure the query client with sensible defaults
 export const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
-            refetchOnWindowFocus: true, // More responsive dashboard
+            
+            refetchOnWindowFocus: false,
+            
             retry: 1,
-            staleTime: 5000, // 5 seconds (more aggressive refresh)
+            retryDelay: 1_000,
+            
+            staleTime: 60_000,
+            
+            gcTime: 5 * 60 * 1_000,
+        },
+        mutations: {
+            retry: 0,
         },
     },
 });
 
-import { AuthProvider } from '@/auth/AuthProvider';
-
 export function AppProviders({ children }: { children: React.ReactNode }) {
     return (
-        <PrimeUIProvider>
+        <PrimeReactProvider value={{ ripple: true }}>
             <QueryClientProvider client={queryClient}>
                 <ThemeProvider>
                     <ToastProvider>
@@ -29,6 +36,6 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
                     </ToastProvider>
                 </ThemeProvider>
             </QueryClientProvider>
-        </PrimeUIProvider>
+        </PrimeReactProvider>
     );
 }
