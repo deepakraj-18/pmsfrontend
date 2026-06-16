@@ -33,7 +33,7 @@ export function AppLoader() {
 
         <div className="text-center">
           <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-teal-300 via-teal-400 to-indigo-400 bg-clip-text text-transparent">
-            TechnoRUCS
+            Techspear
           </h1>
           <p className="text-slate-500 text-sm font-medium mt-1.5 tracking-wide">Project Management System</p>
         </div>

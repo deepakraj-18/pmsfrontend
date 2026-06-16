@@ -108,7 +108,7 @@ export function LoginPage() {
 
         { }
         <p className="auth-footer">
-          TechnoRUCS © 2026 · All Rights Reserved
+          Techspear © 2026 · All Rights Reserved
         </p>
       </div>
     </div>

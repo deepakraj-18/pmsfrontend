@@ -186,7 +186,7 @@ export function Settings() {
                       TR
                     </div>
                     <div className="flex-1">
-                      <p className="text-[18px] font-black text-slate-800 dark:text-white">TechnoRUCS</p>
+                      <p className="text-[18px] font-black text-slate-800 dark:text-white">Techspear</p>
                       <p className="text-[14px] text-slate-500 font-medium flex items-center gap-2 mt-1">
                         Professional Services • Kolkata, India
                       </p>
@@ -197,7 +197,7 @@ export function Settings() {
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-3 col-span-2">
                       <label className="text-[12px] font-black text-slate-500 uppercase tracking-widest">Company Name</label>
-                      <TextInput defaultValue="TechnoRUCS" className="h-12 border-slate-200 dark:border-slate-700 rounded-xl" />
+                      <TextInput defaultValue="Techspear" className="h-12 border-slate-200 dark:border-slate-700 rounded-xl" />
                     </div>
                     <div className="space-y-3 col-span-2 sm:col-span-1">
                       <label className="text-[12px] font-black text-slate-500 uppercase tracking-widest">Global Timezone</label>

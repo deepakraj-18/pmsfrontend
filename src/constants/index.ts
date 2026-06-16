@@ -2,7 +2,7 @@
  * Global Constants
  */
 
-export const APP_NAME = 'TechnoRUCS PMS';
+export const APP_NAME = 'Techspear PMS';
 
 export const UI_MESSAGES = {
     CREATE_SUCCESS: 'Successfully created item',

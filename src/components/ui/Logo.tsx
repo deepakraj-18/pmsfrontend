@@ -11,7 +11,7 @@ export function Logo({ className ="h-8", showText = true }: LogoProps) {
 
   return (
     <div className={`flex items-center cursor-pointer ${combinedClassName}`}>
-      {/* Authentic TechnoRUCS Logo from User Upload */}
+      {/* Authentic Techspear Logo from User Upload */}
       <svg 
         width="190" 
         height="42" 
