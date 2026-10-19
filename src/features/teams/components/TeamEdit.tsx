@@ -90,7 +90,7 @@ export function TeamEdit() {
     <PageLayout
       title={`Edit Team`}
       showBackButton backPath={`/teams/${teamId}`}
-      actions={<Button variant="danger" type="Button" onClick={handleDelete}><Trash2 className="w-4 h-4 mr-2" />Delete Team</Button>}
+      actions={<Button variant="danger" type="button" onClick={handleDelete}><Trash2 className="w-4 h-4 mr-2" />Delete Team</Button>}
     >
       <form onSubmit={handleSubmit} className="max-w-[1200px] mx-auto">
         <FormHeader icon={Users} title="Edit Team" subtitle="Update team details and manage members" color="cyan" />

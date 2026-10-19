@@ -1,11 +1,22 @@
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Logo } from '@/components/core/Logo';
 import './auth.scss';
 import { Button } from 'primereact/button';
+import { useAuth } from '@/auth/AuthProvider';
+import { authService, getAuthErrorMessage } from '@/api/services/auth.service';
+import { ROUTES } from '@/constants/constants';
 
 export function LoginPage() {
-  const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
   const [isClicked, setIsClicked] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleMSLogin = () => {
     setIsClicked(true);
@@ -19,6 +30,22 @@ export function LoginPage() {
     setTimeout(() => {
       window.location.href = authUrl;
     }, 300);
+  };
+
+  const handlePasswordLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      const result = await authService.login({ email: email.trim(), password });
+      if (!result?.access_token) throw new Error('Invalid token response: access_token missing.');
+      await login(result.access_token, result.refresh_token, result);
+      navigate(ROUTES.DASHBOARD, { replace: true });
+    } catch (err: any) {
+      setError(getAuthErrorMessage(err, 'Sign in failed. Please try again.'));
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -35,32 +62,66 @@ export function LoginPage() {
 
           <div className="auth-glow-line" />
 
-          { }
           <div className="auth-logo-section">
             <div className="auth-logo-icon-box">
               <Logo className="h-[38px] text-white" showText={true} />
             </div>
-            <div className="auth-brand-tag">Enterprise Edition</div>
           </div>
+          
 
-          { }
-          <div className="auth-title-block">
-            <h1 className="auth-title">PMS Portal</h1>
-            <p className="auth-subtitle">Project Management System — Sign in to continue</p>
-          </div>
-
-          { }
-          <div className="auth-divider">
+          {/* <div className="auth-divider">
             <div className="auth-divider-line" />
-            <span className="auth-divider-text">ENTERPRISE SSO</span>
+            <span className="auth-divider-text">EXTERNAL USERS</span>
+            <div className="auth-divider-line" />
+          </div> */}
+
+          <form className="auth-form" onSubmit={handlePasswordLogin} noValidate>
+            <div className="auth-field">
+              <label className="auth-label" htmlFor="login-email">Email</label>
+              <input
+                id="login-email"
+                className="auth-input"
+                type="email"
+                autoComplete="username"
+                placeholder="you@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="auth-field">
+              <label className="auth-label" htmlFor="login-password">Password</label>
+              <div className="auth-input-wrap">
+                <input
+                  id="login-password"
+                  className="auth-input"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  placeholder="Your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="auth-input-toggle"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+            </div>
+            <div className="auth-divider">
+            <div className="auth-divider-line" />
+            {/* <span className="auth-divider-text">TEAM MEMBERS</span> */}
+            <span className="auth-divider-text">Or</span>
             <div className="auth-divider-line" />
           </div>
 
-          { }
           <Button unstyled onClick={handleMSLogin}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            disabled={isClicked}
+            disabled={isClicked || isSubmitting}
             className="auth-ms-btn"
           >
             {isClicked ? (
@@ -78,35 +139,24 @@ export function LoginPage() {
             </span>
           </Button>
 
-          { }
-          <div className="auth-security-badge">
-            <div className="auth-security-dot" />
-            <span>256-bit encrypted · Enterprise SSO</span>
-          </div>
+            <div className="auth-form-error" role="alert" aria-live="polite">
+              {error}
+            </div>
 
-          { }
-          <div className="auth-pills">
-            {['Project Tracking', 'Time Management', 'Team Reports'].map((label) => (
-              <div key={label} className="auth-pill">
-                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-                  <path
-                    d="M8 1L10 5.5L15 6.2L11.5 9.5L12.4 14.5L8 12.2L3.6 14.5L4.5 9.5L1 6.2L6 5.5L8 1Z"
-                    fill="url(#starGrad)"
-                  />
-                  <defs>
-                    <linearGradient id="starGrad" x1="1" y1="8" x2="15" y2="8" gradientUnits="userSpaceOnUse">
-                      <stop stopColor="#0CD1C3" />
-                      <stop offset="1" stopColor="#B3F57B" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
+            <button
+              type="submit"
+              className="auth-submit-btn"
+              disabled={isSubmitting || isClicked || !email.trim() || !password}
+            >
+              {isSubmitting ? <div className="auth-ms-btn-spinner" /> : 'Sign in'}
+            </button>
+          </form>
+
+          <p className="auth-switch">
+            New external user? <Link to={ROUTES.REGISTER}>Create an account</Link>
+          </p>
         </div>
 
-        { }
         <p className="auth-footer">
           Techspear © 2026 · All Rights Reserved
         </p>

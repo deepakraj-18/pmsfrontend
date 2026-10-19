@@ -77,10 +77,13 @@ export const HTTP_STATUS = {
 export const AUTH_ENDPOINTS = {
     REFRESH: '/auth/refresh',
     ME: '/auth/me',
+    LOGIN: '/auth/login',
+    REGISTER: '/auth/register',
 } as const;
 
 export const ROUTES = {
     LOGIN: '/login',
+    REGISTER: '/register',
     DASHBOARD: '/',
 } as const;
 
@@ -94,4 +97,47 @@ export const STORAGE_KEYS = {
 
 export const EVENTS = {
     TOAST: 'pms:toast',
+} as const;
+
+export const PASSWORD_POLICY = {
+    MIN_LENGTH: 10,
+    MAX_LENGTH: 128,
+} as const;
+
+// View-permission levels shown in the role configuration dropdowns. `value` is what is stored
+// on the role ('' = no access, saved as false); `label` is what the admin sees.
+export const VIEW_LEVEL_OPTIONS = [
+    { label: 'No Access', value: '' },
+    { label: 'Owned', value: 'O' },
+    { label: 'Associated', value: 'A' },
+    { label: 'All', value: 'All' },
+] as const;
+
+export const VIEW_LEVEL_BADGE_LABELS: Record<string, string> = {
+    O: 'Owned',
+    A: 'Associated',
+    All: 'All',
+};
+
+// User status names (ids differ per database, so screens look them up by name).
+export const USER_STATUS = {
+    ACTIVE: 'Active',
+    INACTIVE: 'Inactive',
+    PENDING: 'Pending',
+} as const;
+
+// Project chat (mirrors the limits enforced by the API in AppConstants.cs).
+export const CHAT = {
+    HUB_PATH: '/hubs/chat',
+    MAX_LENGTH: 4000,
+    PAGE_SIZE: 50,
+    UNREAD_POLL_MS: 30_000,
+    MARK_READ_DEBOUNCE_MS: 800,
+    MAX_FILES: 5,
+    MAX_FILE_BYTES: 10 * 1024 * 1024,
+    ALLOWED_EXTENSIONS: ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.pdf', '.txt', '.csv', '.md',
+        '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.zip'],
+    INLINE_IMAGE_EXTENSIONS: ['.png', '.jpg', '.jpeg', '.gif', '.webp'],
+    VIEW_PERMISSION: 'chat-view',
+    POST_PERMISSION: 'chat-post',
 } as const;

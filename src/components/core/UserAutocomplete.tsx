@@ -22,7 +22,10 @@ interface UserAutocompleteProps {
 function normalizeUser(raw: any): UserOption | null {
   if (!raw || typeof raw === 'string') return null;
 
-  const displayName = raw.displayName ||
+  // `display_name` (snake_case) is what the backend actually sends — every endpoint in
+  // this app is serialized snake_case. `displayName` stays checked first only in case
+  // something ever hands this a raw, unproxied Microsoft Graph object directly.
+  const displayName = raw.displayName || raw.display_name ||
     [raw.first_name, raw.last_name].filter(Boolean).join(' ') ||
     raw.email || raw.mail;
 

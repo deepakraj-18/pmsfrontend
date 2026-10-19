@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from 'primereact/button';
 import { Checkbox } from 'primereact/checkbox';
 import { Dropdown } from 'primereact/dropdown';
+import { VIEW_LEVEL_OPTIONS } from '@/constants/constants';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { availablePermissions, Permission } from '../../types/permissions';
 
@@ -63,7 +64,7 @@ export function RolePermissionGrid({ permissions, onChangePermission, onToggleAl
               </div>
               <Button
                 text
-                type="Button"
+                type="button"
                 onClick={(e) => { e.stopPropagation(); onToggleAllInCategory(category, perms); }}
                 className="!text-[12px] font-bold !text-brand-teal-600 hover:!text-brand-teal-700 transition-colors uppercase tracking-wider"
                 label={allSelected ? 'Deselect All' : 'Select All'}
@@ -103,24 +104,19 @@ export function RolePermissionGrid({ permissions, onChangePermission, onToggleAl
                          <div className="mt-1" onClick={(e) => e.stopPropagation()}>
                            <Dropdown
                               value={val === true ? 'All' : (val || '')}
-                              options={[
-                                { label: '-', value: '' },
-                                { label: 'O', value: 'O' },
-                                { label: 'A', value: 'A' },
-                                { label: 'ALL', value: 'All' }
-                              ]}
+                              options={[...VIEW_LEVEL_OPTIONS]}
                               onChange={(e) => {
                                 const newVal = e.value;
                                 onChangePermission(permission.id, newVal === '' ? false : newVal);
                               }}
                               unstyled
                               pt={{
-                                root: { className: 'inline-flex items-center w-[64px] h-[26px] bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-teal-400 rounded-md text-[11px] font-bold outline-none transition-all cursor-pointer relative' },
-                                input: { className: 'flex-1 w-full text-center pl-1 text-slate-700 dark:text-slate-300 select-none' },
+                                root: { className: 'inline-flex items-center w-[120px] h-[26px] bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-teal-400 rounded-md text-[11px] font-bold outline-none transition-all cursor-pointer relative' },
+                                input: { className: 'flex-1 w-full text-left pl-2 text-slate-700 dark:text-slate-300 select-none' },
                                 trigger: { className: 'w-5 h-full flex items-center justify-center text-slate-400 border-l-2 border-slate-100 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 rounded-r-md shrink-0' },
-                                panel: { className: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg overflow-hidden z-50 min-w-[64px]' },
+                                panel: { className: 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg overflow-hidden z-50 min-w-[120px]' },
                                 list: { className: 'py-1 flex flex-col m-0 p-0 list-none' },
-                                item: { className: 'text-[11px] font-bold px-2 py-1.5 hover:bg-teal-50 dark:hover:bg-teal-900/30 hover:text-teal-700 dark:hover:text-teal-400 cursor-pointer text-center select-none transition-colors' }
+                                item: { className: 'text-[11px] font-bold px-2 py-1.5 hover:bg-teal-50 dark:hover:bg-teal-900/30 hover:text-teal-700 dark:hover:text-teal-400 cursor-pointer text-left select-none transition-colors' }
                               }}
                            />
                          </div>

@@ -186,7 +186,7 @@ export function RoleCreateView() {
         )}
 
         <div className="flex items-center justify-between pt-5 mt-2" style={{ borderTop: '1px solid var(--border-color)' }}>
-          <Button variant="ghost" type="Button" onClick={() => navigate('/roles')}>Cancel</Button>
+          <Button variant="ghost" type="button" onClick={() => navigate('/roles')}>Cancel</Button>
           <Button variant="gradient" type="submit" loading={createRole.isPending} disabled={!watch('name')?.trim()}>
             {createRole.isPending ? 'Creating…' : 'Create Role'}
           </Button>

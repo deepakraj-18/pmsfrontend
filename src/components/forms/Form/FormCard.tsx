@@ -44,7 +44,7 @@ export function FormCard({ children, sectionTitle, columns = 3, footer, classNam
 
       {footer && (
         <div className="px-6 py-5 flex items-center justify-between" style={{ borderTop: '1px solid var(--border-color)', background: 'var(--bg-secondary)' }}>
-          <Button variant="ghost" type="Button" onClick={footer.onCancel}>
+          <Button variant="ghost" type="button" onClick={footer.onCancel}>
             {footer.cancelLabel || 'Cancel'}
           </Button>
           <Button variant="gradient" type="submit" disabled={footer.isDisabled || footer.isSubmitting}>

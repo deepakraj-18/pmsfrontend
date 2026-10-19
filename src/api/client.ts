@@ -51,6 +51,16 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
     (response) => {
+        // The .NET API wraps every success response as
+        // { is_success, data, message, errors } (see PMS.Application/Common/ApiResponse.cs)
+        // — unlike the source FastAPI app, which returned each DTO flat/unwrapped. Every
+        // call site in this frontend was written against the flat shape (`response.data.foo`),
+        // so unwrap the envelope here, once, rather than touching every call site.
+        if (response.data && typeof response.data === 'object' &&
+            'is_success' in response.data && 'data' in response.data) {
+            response.data = response.data.data;
+        }
+
         const { method, url } = response.config;
         if (method && MUTATION_METHODS.includes(method) && url) {
 
@@ -88,7 +98,9 @@ api.interceptors.response.use(
                 return axios.post(refreshUrl, { refresh_token: refreshToken }, { withCredentials: true })
                     .then(res => {
                         if (res.status === HTTP_STATUS.OK || res.status === HTTP_STATUS.CREATED) {
-                            const { access_token, refresh_token: newRefreshToken } = res.data;
+                            // Raw axios.post, not the `api` instance — bypasses the response
+                            // interceptor's envelope unwrap above, so unwrap here explicitly.
+                            const { access_token, refresh_token: newRefreshToken } = res.data.data;
                             localStorage.setItem(STORAGE_KEYS.TOKEN, access_token);
                             if (newRefreshToken) {
                                 localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, newRefreshToken);

@@ -20,6 +20,8 @@ import {
 import { useAuth } from '@/auth/AuthProvider';
 import { ROLES, checkPermission, can } from '@/utils/permissions';
 import { Button } from 'primereact/button';
+import { useChatUnread } from '@/features/chat/hooks/useChat';
+import { CHAT } from '@/constants/constants';
 
 interface NavItem {
   path: string;
@@ -68,6 +70,10 @@ const navItems: NavItem[] = [
 export function Sidebar() {
   const location = useLocation();
   const { user } = useAuth();
+  const canChat = !user?.is_external || checkPermission(user?.role, CHAT.VIEW_PERMISSION);
+  const { data: unreadRooms } = useChatUnread(canChat && !!user);
+  const unreadTotal = (unreadRooms ?? []).reduce((sum, r) => sum + r.count, 0);
+  const mentionTotal = (unreadRooms ?? []).reduce((sum, r) => sum + (r.mention_count ?? 0), 0);
   const userRole = user?.role?.name ?? '';
 
   const [collapsed, setCollapsed] = useState(window.innerWidth < 1024);
@@ -208,12 +214,24 @@ export function Sidebar() {
                       style={{ background: 'var(--sidebar-active-border)' }}
                     />
                   )}
-                  <span className="flex-shrink-0 transition-transform duration-150 group-hover:scale-105">
+                  <span className="relative flex-shrink-0 transition-transform duration-150 group-hover:scale-105">
                     {item.icon}
+                    {collapsed && item.path === '/projects' && unreadTotal > 0 && (
+                      <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-rose-500" aria-label="Unread chat messages" />
+                    )}
                   </span>
                   {!collapsed && (
-                    <span className="text-[13px] truncate leading-normal">
+                    <span className="text-[13px] truncate leading-normal flex-1">
                       {item.label}
+                    </span>
+                  )}
+                  {!collapsed && item.path === '/projects' && unreadTotal > 0 && (
+                    <span
+                      className={`ml-auto min-w-[18px] rounded-full px-1.5 text-center text-[10px] font-bold leading-[18px] text-white
+                        ${mentionTotal > 0 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                      aria-label={`${unreadTotal} unread chat messages${mentionTotal > 0 ? `, ${mentionTotal} mentioning you` : ''}`}
+                    >
+                      {mentionTotal > 0 ? `@${mentionTotal}` : unreadTotal > 99 ? '99+' : unreadTotal}
                     </span>
                   )}
                 </Link>

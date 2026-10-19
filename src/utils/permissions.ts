@@ -106,6 +106,8 @@ export const can = {
   viewUsers: (role?: UserRole | null) => checkPermission(role, 'user-view'),
   viewTeams: (role?: UserRole | null) => checkPermission(role, 'team-view'),
   viewRoles: (role?: UserRole | null) => checkPermission(role, 'role-manage'),
+
+  syncUsersFromAzure: (role?: UserRole | null) => checkPermission(role, 'automation-manage'),
 };
 
 export const settingsTabs = {

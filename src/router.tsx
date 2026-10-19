@@ -38,6 +38,7 @@ const WeeklyTimeLogAdd = React.lazy(() => import('@/features/timelogs/components
 const TimeLogAdd = React.lazy(() => import('@/features/timelogs/components/views/TimeLogAddView').then(v => ({ default: v.TimeLogAddView })));
 
 const UsersList = React.lazy(() => import('@/features/users/components/UsersList').then(v => ({ default: v.UsersList })));
+const PendingUsers = React.lazy(() => import('@/features/users/components/PendingUsers').then(v => ({ default: v.PendingUsers })));
 const UserCreate = React.lazy(() => import('@/features/users/components/UserCreate').then(v => ({ default: v.UserCreate })));
 const UserDetail = React.lazy(() => import('@/features/users/components/UserDetail').then(v => ({ default: v.UserDetail })));
 const UserEdit = React.lazy(() => import('@/features/users/components/UserEdit').then(v => ({ default: v.UserEdit })));
@@ -167,6 +168,9 @@ export function AppRouter() {
                         {/* Users */}
                         <Route path="/users" element={
                             <ProtectedRoute requiredPermission="user-view"><UsersList /></ProtectedRoute>
+                        } />
+                        <Route path="/users/pending" element={
+                            <ProtectedRoute requiredPermission="user-edit"><PendingUsers /></ProtectedRoute>
                         } />
                         <Route path="/users/create" element={
                             <ProtectedRoute requiredPermission="user-create"><UserCreate /></ProtectedRoute>

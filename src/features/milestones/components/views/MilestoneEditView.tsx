@@ -280,7 +280,7 @@ export function MilestoneEditView() {
                 </div>
 
                 <div className="flex items-center justify-between pt-5 mt-5" style={{ borderTop: '1px solid var(--border-color)' }}>
-                    <Button variant="ghost" type="Button" onClick={() => navigate(-1)}>
+                    <Button variant="ghost" type="button" onClick={() => navigate(-1)}>
                         Cancel
                     </Button>
                     <Button variant="gradient" type="submit" loading={isSubmitting}>

@@ -56,6 +56,16 @@ api.interceptors.request.use(
 // ── Response Interceptor: Cache Invalidation + Global Error Dispatch ──────
 api.interceptors.response.use(
     (response) => {
+        // The .NET API wraps every success response as
+        // { is_success, data, message, errors } (see PMS.Application/Common/ApiResponse.cs)
+        // — unlike the source FastAPI app, which returned each DTO flat/unwrapped. Every
+        // call site in this frontend was written against the flat shape (`response.data.foo`),
+        // so unwrap the envelope here, once, rather than touching every call site.
+        if (response.data && typeof response.data === 'object' &&
+            'is_success' in response.data && 'data' in response.data) {
+            response.data = response.data.data;
+        }
+
         const { method, url } = response.config;
 
         // Automatic TanStack Query cache invalidation on any successful mutation

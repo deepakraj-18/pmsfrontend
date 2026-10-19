@@ -36,6 +36,8 @@ export const availablePermissions: Permission[] = [
   { id: 'team-create', category: 'Teams', name: 'Create Teams', description: 'Create new teams' },
   { id: 'team-edit', category: 'Teams', name: 'Edit Teams', description: 'Modify team details and members' },
   { id: 'team-delete', category: 'Teams', name: 'Delete Teams', description: 'Remove teams from the system' },
+  { id: 'chat-view', category: 'Chat', name: 'View Project Chat', description: 'Read the chat of projects they belong to' },
+  { id: 'chat-post', category: 'Chat', name: 'Post in Project Chat', description: 'Send, edit and delete their own chat messages' },
   { id: 'report-view', category: 'Reports', name: 'View Reports', description: 'Access dashboards and reports' },
   { id: 'report-export', category: 'Reports', name: 'Export Reports', description: 'Download and export report data' },
   { id: 'settings-view', category: 'Administration', name: 'View Settings', description: 'View system configuration' },

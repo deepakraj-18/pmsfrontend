@@ -209,7 +209,7 @@ export function IssueEditView() {
                 loading={deleteIssue.isPending}
             />
             <PageLayout title="Edit Defect" showBackButton onBack={() => { if (window.history.state && window.history.state.idx > 0) navigate(-1); else navigate(`/issues/${id}`, { replace: true }); }} actions={
-                <Button variant="danger" type="Button" onClick={handleDelete}><Trash2 className="w-4 h-4 mr-2" />Delete Defect</Button>
+                <Button variant="danger" type="button" onClick={handleDelete}><Trash2 className="w-4 h-4 mr-2" />Delete Defect</Button>
             }>
                 <form onSubmit={handleSubmit(onSubmit as any)} className="max-w-[980px] mx-auto pb-16 px-4">
                     {errors.root && (
@@ -473,7 +473,7 @@ export function IssueEditView() {
                     </div>
 
                     <div className="flex items-center justify-between pt-5 mt-5" style={{ borderTop: '1px solid var(--border-color)' }}>
-                        <Button variant="ghost" type="Button" onClick={() => { if (window.history.state && window.history.state.idx > 0) navigate(-1); else navigate(`/issues/${id}`, { replace: true }); }}>Cancel</Button>
+                        <Button variant="ghost" type="button" onClick={() => { if (window.history.state && window.history.state.idx > 0) navigate(-1); else navigate(`/issues/${id}`, { replace: true }); }}>Cancel</Button>
                         <Button variant="primary" type="submit" loading={isBusy} className="shadow-brand-teal-500/25">
                             {uploading ? 'Uploading…' : isBusy ? 'Saving…' : 'Save Defect'}
                         </Button>

@@ -49,7 +49,7 @@ export function WeeklyMatrixForm({ control, register, setValue, days, onDateShif
         >
           <Button
             unstyled
-            type="Button"
+            type="button"
             className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
             onClick={() => onDateShift('prev')}
           >
@@ -66,7 +66,7 @@ export function WeeklyMatrixForm({ control, register, setValue, days, onDateShif
           </div>
           <Button
             unstyled
-            type="Button"
+            type="button"
             className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
             onClick={() => onDateShift('next')}
           >

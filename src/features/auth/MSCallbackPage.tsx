@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '@/api/client';
 import { useAuth } from '@/auth/AuthProvider';
@@ -11,10 +11,21 @@ export function MSCallbackPage() {
   const { login } = useAuth();
   const [error, setError] = useState<string | null>(null);
 
+  // Microsoft's authorization `code` is single-use — exchanging it twice gets the second
+  // call rejected (400 invalid_grant) by Microsoft's token endpoint, even though the first
+  // call already succeeded. This page's effect has no inherent guarantee it only runs once
+  // per real navigation (StrictMode double-invoke in dev, a parent re-render remounting
+  // this route, HMR, etc. can all trigger it twice), so guard explicitly rather than rely
+  // on the effect firing exactly once.
+  const exchangedRef = useRef(false);
+
   useEffect(() => {
+    if (exchangedRef.current) return;
+
     const code = searchParams.get('code');
 
     if (code) {
+      exchangedRef.current = true;
       exchangeCode(code);
     } else {
       const errorDesc = searchParams.get('error_description');

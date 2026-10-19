@@ -577,7 +577,7 @@ export function ProjectEditView() {
           </div>
 
           <div className="flex items-center justify-between pt-5 mt-5" style={{ borderTop: '1px solid var(--border-color)' }}>
-            <Button variant="ghost" type="Button" onClick={() => navigate(`/projects/${projectId}`)}>Cancel</Button>
+            <Button variant="ghost" type="button" onClick={() => navigate(`/projects/${projectId}`)}>Cancel</Button>
             <Button variant="gradient" type="submit" loading={isSubmitting} disabled={!isValid}>
               {isSubmitting ? 'Saving…' : 'Save Changes'}
             </Button>

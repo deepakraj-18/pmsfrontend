@@ -131,7 +131,7 @@ export function RoleEditView() {
     <PageLayout
       title={`Edit Role: ${roleName}`}
       showBackButton
-      actions={<Button variant="danger" type="Button" onClick={handleDelete}><Trash2 className="w-4 h-4 mr-2" />Delete Role</Button>}
+      actions={<Button variant="danger" type="button" onClick={handleDelete}><Trash2 className="w-4 h-4 mr-2" />Delete Role</Button>}
     >
       <form onSubmit={handleSubmit(onSubmit as any)} className="max-w-[980px] mx-auto pb-16 px-4">
 
@@ -250,7 +250,7 @@ export function RoleEditView() {
         )}
 
         <div className="flex items-center justify-between pt-5 mt-2" style={{ borderTop: '1px solid var(--border-color)' }}>
-          <Button variant="ghost" type="Button" onClick={() => navigate(-1)}>Cancel</Button>
+          <Button variant="ghost" type="button" onClick={() => navigate(-1)}>Cancel</Button>
           <Button variant="gradient" type="submit" loading={updateRole.isPending} disabled={!watch('name')?.trim()}>
             {updateRole.isPending ? 'Saving…' : 'Save Changes'}
           </Button>

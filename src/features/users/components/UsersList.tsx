@@ -6,21 +6,56 @@ import { StatCardProps } from '@/components/data-display/StatCard';
 import { DataTable, DataTableColumn } from '@/components/data-display/DataTable';
 import { Badge } from '@/components/data-display/Badge';
 import { TableSkeleton } from '@/components/feedback/Skeleton/TableSkeleton';
-import { Plus, Users, UserPlus, CheckCircle, UserX } from 'lucide-react';
+import { Plus, Users, UserPlus, CheckCircle, UserX, RefreshCw } from 'lucide-react';
 import { usersService, User as ApiUser } from '@/features/users/api/users.api';
 import { format } from 'date-fns';
 import { FilterSidebar } from '@/components/layout/FilterSidebar';
 import { useRolesLookup } from '@/features/masters/hooks/useMasters';
 import { useFilters } from '@/hooks/useFilters';
 import { UserAvatar } from '@/components/data-display/UserAvatar/UserAvatar';
+import { useAuth } from '@/auth/AuthProvider';
+import { useToast } from '@/providers/ToastContext';
+import { can, checkPermission } from '@/utils/permissions';
 
 export function UsersList() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { showToast } = useToast();
 
   const [users, setUsers] = useState<ApiUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
 
   const { data: roles = [] } = useRolesLookup();
+
+  const fetchUsers = async () => {
+    try {
+      const data = await usersService.getUsers();
+      setUsers(data);
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSyncFromAzure = async () => {
+    setSyncing(true);
+    try {
+      const result = await usersService.syncFromAzure();
+      showToast(
+        'success',
+        'Azure AD Sync Complete',
+        `${result.total_fetched_from_azure} users fetched — ${result.created} created, ${result.updated} updated, ${result.skipped} skipped.`,
+      );
+      await fetchUsers();
+    } catch (err: any) {
+      const message = err?.response?.data?.message || err?.message || 'Azure AD sync failed.';
+      showToast('error', 'Sync Failed', message);
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const {
     showFilters, selectedFilters, openFilters, closeFilters,
@@ -28,16 +63,6 @@ export function UsersList() {
   } = useFilters();
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const data = await usersService.getUsers();
-        setUsers(data);
-      } catch (error) {
-        console.error('Failed to fetch users:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchUsers();
   }, []);
 
@@ -113,10 +138,23 @@ export function UsersList() {
       hasActiveFilters={hasActiveFilters}
       activeFilterCount={Object.values(selectedFilters).flat().length}
       headerActions={
-        <Button variant="primary" size="md" onClick={() => navigate('/users/create')}>
-          <Plus size={16} className="mr-2" />
-          Add User
-        </Button>
+        <div className="flex items-center gap-2">
+          {can.syncUsersFromAzure(user?.role) && (
+            <Button variant="secondary" size="md" onClick={handleSyncFromAzure} disabled={syncing}>
+              <RefreshCw size={16} className={`mr-2 ${syncing ? 'animate-spin' : ''}`} />
+              {syncing ? 'Syncing…' : 'Sync from Azure AD'}
+            </Button>
+          )}
+          {checkPermission(user?.role, 'user-edit') && (
+            <Button variant="secondary" size="md" onClick={() => navigate('/users/pending')}>
+              Access Requests
+            </Button>
+          )}
+          <Button variant="primary" size="md" onClick={() => navigate('/users/create')}>
+            <Plus size={16} className="mr-2" />
+            Add User
+          </Button>
+        </div>
       }
     >
       {loading ? (

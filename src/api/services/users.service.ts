@@ -34,12 +34,29 @@ export interface User {
     manager?: { first_name: string; last_name: string };
     status?: MasterItem;
     skills?: MasterItem[];
+    is_external?: boolean;
+}
+
+export interface SyncUsersResult {
+    total_fetched_from_azure: number;
+    created: number;
+    updated: number;
+    skipped: number;
 }
 
 export const usersService = {
     getUsers: async (skip = 0, limit = 100): Promise<User[]> => {
         const { data } = await api.get('/users/', { params: { skip, limit } });
         return Array.isArray(data) ? data : (data.data ?? []);
+    },
+
+    // Bulk-pulls every user in the Azure AD tenant via Microsoft Graph (app-only, needs the
+    // 'User.Read.All' application permission admin-consented in Azure AD) and upserts each
+    // one locally. Throws on failure — most commonly a 400 because that permission/consent
+    // isn't granted yet; the error message from the backend says so explicitly.
+    syncFromAzure: async (): Promise<SyncUsersResult> => {
+        const { data } = await api.post('/users/sync');
+        return data;
     },
 
     getCurrentUser: async (): Promise<User> => {

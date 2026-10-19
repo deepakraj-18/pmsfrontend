@@ -264,7 +264,7 @@ export function MilestoneCreate() {
                 </div>
 
                 <div className="flex items-center justify-between pt-5 mt-5" style={{ borderTop: '1px solid var(--border-color)' }}>
-                    <Button variant="ghost" type="Button" onClick={() => presetProjectId ? navigate(`/projects/${presetProjectId}?tab=Milestones`) : navigate('/milestones')}>Cancel</Button>
+                    <Button variant="ghost" type="button" onClick={() => presetProjectId ? navigate(`/projects/${presetProjectId}?tab=Milestones`) : navigate('/milestones')}>Cancel</Button>
                     <Button variant="gradient" type="submit" loading={isSubmitting}>
                         {isSubmitting ? 'Creating…' : 'Create Milestone'}
                     </Button>

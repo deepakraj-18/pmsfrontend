@@ -53,7 +53,6 @@ export function UserEdit() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId) return;
-    setSubmitting(true);
     try {
       const extractId = (val: any) => (val && typeof val === 'object' ? val.id : val);
       const payload: any = {
@@ -68,6 +67,8 @@ export function UserEdit() {
       navigate(`/users/${userId}`);
     } catch (error: any) {
       console.error('Failed to update user:', error);
+      const message = error?.response?.data?.message || error?.response?.data?.detail || 'Could not save changes.';
+      showToast('error', 'Update Failed', message);
     }
   };
 

@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AppProviders } from './providers/AppProviders';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { MSCallbackPage } from '@/features/auth/MSCallbackPage';
+import { RegisterPage } from '@/features/auth/RegisterPage';
 
 import { AppLoader } from '@/components/feedback/AppLoader';
 import { AppShell } from '@/layouts/AppShell';
@@ -14,6 +15,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/auth/ms-callback" element={<MSCallbackPage />} />
           <Route path="/redirect" element={<MSCallbackPage />} />
           <Route

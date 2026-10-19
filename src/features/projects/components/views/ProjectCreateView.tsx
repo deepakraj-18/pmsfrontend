@@ -433,8 +433,8 @@ export function ProjectCreateView() {
                                 </FormSection>
 
                                 <StepActions>
-                                    <Button variant="ghost" onClick={() => navigate('/projects')} type="Button">Cancel</Button>
-                                    <Button variant="primary" onClick={() => advance(STEP1_FIELDS)} type="Button" className="shadow-brand-teal-500/25">
+                                    <Button variant="ghost" onClick={() => navigate('/projects')} type="button">Cancel</Button>
+                                    <Button variant="primary" onClick={() => advance(STEP1_FIELDS)} type="button" className="shadow-brand-teal-500/25">
                                         Next: Template <ChevronRight size={14} className="ml-1" />
                                     </Button>
                                 </StepActions>
@@ -503,8 +503,8 @@ export function ProjectCreateView() {
                                 )}
 
                                 <StepActions>
-                                    <Button variant="ghost" icon={<ChevronLeft size={14} />} onClick={() => setActiveStep(s => s - 1)} type="Button">Back</Button>
-                                    <Button variant="primary" onClick={() => setActiveStep(s => s + 1)} type="Button" className="shadow-brand-teal-500/25">
+                                    <Button variant="ghost" icon={<ChevronLeft size={14} />} onClick={() => setActiveStep(s => s - 1)} type="button">Back</Button>
+                                    <Button variant="primary" onClick={() => setActiveStep(s => s + 1)} type="button" className="shadow-brand-teal-500/25">
                                         Next: Members <ChevronRight size={14} className="ml-1" />
                                     </Button>
                                 </StepActions>
@@ -569,10 +569,10 @@ export function ProjectCreateView() {
                                 )}
 
                                 <StepActions>
-                                    <Button variant="ghost" icon={<ChevronLeft size={14} />} onClick={() => setActiveStep(s => s - 1)} type="Button">Back</Button>
+                                    <Button variant="ghost" icon={<ChevronLeft size={14} />} onClick={() => setActiveStep(s => s - 1)} type="button">Back</Button>
                                     <Button
                                         variant="primary"
-                                        type="Button"
+                                        type="button"
                                         onClick={handleSubmit(onSubmit)}
                                         loading={isSubmitting || createProject.isPending}
                                         icon={<Check size={14} />}

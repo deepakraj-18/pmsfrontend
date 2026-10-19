@@ -194,8 +194,8 @@ export function LogTimeInline({ projectId, taskId, issueId, onSuccess }: LogTime
                     <div className="flex items-center justify-between mb-4">
                         <span className="text-[10px] font-black uppercase text-slate-500">Duration Settings</span>
                         <div className="flex p-0.5 rounded-lg bg-slate-200/50 dark:bg-slate-700/50">
-                            <button type="Button" onClick={() => setTimeMode('duration')} className={`px-3 py-1 text-[11px] font-bold rounded-md transition-all ${timeMode === 'duration' ? 'bg-white dark:bg-slate-600 shadow-sm text-teal-600' : 'text-slate-500'}`}>Duration</button>
-                            <button type="Button" onClick={() => setTimeMode('range')} className={`px-3 py-1 text-[11px] font-bold rounded-md transition-all ${timeMode === 'range' ? 'bg-white dark:bg-slate-600 shadow-sm text-teal-600' : 'text-slate-500'}`}>Range</button>
+                            <button type="button" onClick={() => setTimeMode('duration')} className={`px-3 py-1 text-[11px] font-bold rounded-md transition-all ${timeMode === 'duration' ? 'bg-white dark:bg-slate-600 shadow-sm text-teal-600' : 'text-slate-500'}`}>Duration</button>
+                            <button type="button" onClick={() => setTimeMode('range')} className={`px-3 py-1 text-[11px] font-bold rounded-md transition-all ${timeMode === 'range' ? 'bg-white dark:bg-slate-600 shadow-sm text-teal-600' : 'text-slate-500'}`}>Range</button>
                         </div>
                     </div>
 

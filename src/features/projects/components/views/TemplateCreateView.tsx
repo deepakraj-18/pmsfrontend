@@ -243,7 +243,7 @@ export function TemplateCreateView() {
                                 {tasks.filter(t => t.title.trim()).length}
                             </span>
                         </div>
-                        <Button variant="gradient" size="sm" icon={<Plus size={13} />} onClick={addTask} type="Button">
+                        <Button variant="gradient" size="sm" icon={<Plus size={13} />} onClick={addTask} type="button">
                             Add Task
                         </Button>
                     </div>
@@ -290,7 +290,7 @@ export function TemplateCreateView() {
                                             </span>
                                         )}
                                         <Button
-                                            type="Button"
+                                            type="button"
                                             onClick={e => { e.stopPropagation(); removeTask(task._key); }}
                                             className="p-1 rounded hover:bg-red-500/10 transition-colors"
                                             style={{ color: '#ef4444' }}
@@ -313,7 +313,7 @@ export function TemplateCreateView() {
 
                 { }
                 <div className="flex justify-end gap-3 pt-2">
-                    <Button variant="ghost" onClick={() => navigate('/templates')} type="Button">
+                    <Button variant="ghost" onClick={() => navigate('/templates')} type="button">
                         Cancel
                     </Button>
                     <Button variant="gradient" type="submit" loading={isPending}>

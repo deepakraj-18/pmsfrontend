@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { EntityDetailTemplate } from '@/components/layout/EntityDetailTemplate';
 import { SectionLoadingIndicator } from '@/components/feedback/Loader/SectionLoadingIndicator';
-import { Message } from 'primereact/message';
 import { Avatar } from 'primereact/avatar';
 import { Tag } from 'primereact/tag';
 import { Tooltip } from 'primereact/tooltip';
@@ -30,7 +29,9 @@ import {
 
 import { ProgressBar } from 'primereact/progressbar';
 import { useAuth } from '@/auth/AuthProvider';
-import { can } from '@/utils/permissions';
+import { can, checkPermission, isAdmin } from '@/utils/permissions';
+import { ProjectChatTab } from '@/features/chat/components/ProjectChatTab';
+import { CHAT } from '@/constants/constants';
 
 const TEAL = 'hsl(160 60% 45%)';
 const TEAL_DIM = 'hsl(160 60% 45% / 0.12)';
@@ -202,8 +203,13 @@ export function ProjectDetailView() {
     if (isLoading) return <SectionLoadingIndicator fullPage />;
     if (!project) return <div className="p-8 text-center text-muted">Project not found.</div>;
 
+    // Internal members can always chat; external users need the role's chat permissions.
+    const canChat = !user?.is_external || checkPermission(user?.role, CHAT.VIEW_PERMISSION);
+    const canPostChat = !user?.is_external || checkPermission(user?.role, CHAT.POST_PERMISSION);
+
     const tabs = [
         { label: 'Dashboard' },
+        ...(canChat ? [{ label: 'Chat' }] : []),
         { label: 'Defects' },
         { label: 'Tasks' },
         { label: 'Reports' },
@@ -254,11 +260,12 @@ export function ProjectDetailView() {
                 <div className="flex flex-col lg:flex-row gap-6 min-h-[600px]">
                     { }
                     <div className="flex-1 min-w-0 space-y-6">
-                        {!project.ms_teams_group_id && (
-                            <Message
-                                severity="info"
-                                text="MS Teams workspace provisioning in progress."
-                                className="w-full justify-start text-[13px] rounded-xl"
+                        {activeTab === 'Chat' && canChat && (
+                            <ProjectChatTab
+                                projectId={pid}
+                                currentUserId={user?.id}
+                                canPost={canPostChat}
+                                canModerate={isAdmin(user?.role?.name)}
                             />
                         )}
 

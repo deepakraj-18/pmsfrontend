@@ -760,7 +760,7 @@ export function TimeLogAddView() {
               >
                 <Button
                   unstyled
-                  type="Button"
+                  type="button"
                   onClick={() => setTimeMode('duration')}
                   className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[12px] font-bold transition-all"
                   style={{
@@ -773,7 +773,7 @@ export function TimeLogAddView() {
                 </Button>
                 <Button
                   unstyled
-                  type="Button"
+                  type="button"
                   onClick={() => setTimeMode('range')}
                   className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[12px] font-bold transition-all"
                   style={{
@@ -932,7 +932,7 @@ export function TimeLogAddView() {
               Logged as <strong style={{ color: 'var(--text-primary)' }}>{user?.email}</strong>
             </div>
             <div className="flex gap-3">
-              <Button variant="secondary" type="Button" onClick={() => navigate(dynamicBackPath)} disabled={isBusy}>
+              <Button variant="secondary" type="button" onClick={() => navigate(dynamicBackPath)} disabled={isBusy}>
                 Cancel
               </Button>
               <Button

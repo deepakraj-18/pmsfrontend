@@ -225,7 +225,7 @@ export function WeeklyTimeLogAddView() {
             style={{ borderTop: '1px solid var(--border-color)' }}
           >
             <div className="flex gap-3">
-              <Button variant="secondary" type="Button" onClick={() => navigate('/time-log')} disabled={isBusy}>
+              <Button variant="secondary" type="button" onClick={() => navigate('/time-log')} disabled={isBusy}>
                 Cancel
               </Button>
               <Button

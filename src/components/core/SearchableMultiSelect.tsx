@@ -80,13 +80,14 @@ const SearchableMultiSelect: React.FC<SearchableMultiSelectProps> = ({
     [entityType, fetchInitial, mergeWithSelected]
   );
 
-  useEffect(() => {
-    performSearch(debouncedFilter, filters, customSearchPath);
-  }, [debouncedFilter, filters, customSearchPath, performSearch]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const filtersKey = JSON.stringify(filters);
 
   useEffect(() => {
-    fetchInitial();
-  }, [JSON.stringify(filters)]);
+    performSearch(debouncedFilter, filters, customSearchPath);
+    // filtersKey used instead of filters object to avoid infinite loops from new object references
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedFilter, filtersKey, customSearchPath]);
 
   useEffect(() => {
     if (value && value.length > 0) {

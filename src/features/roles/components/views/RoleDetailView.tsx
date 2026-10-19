@@ -16,6 +16,7 @@ import { api } from '@/api/client';
 import { useToast } from '@/providers/ToastContext';
 import { availablePermissions } from '../../types/permissions';
 import { ROLES } from '@/utils/permissions';
+import { VIEW_LEVEL_BADGE_LABELS } from '@/constants/constants';
 
 const TABS = [{ label: 'Overview' }, { label: 'Permissions' }, { label: 'Assignments' }];
 
@@ -230,10 +231,8 @@ export function RoleDetailView() {
                     <div className="flex flex-wrap gap-2">
                       {permissions.map((permission) => {
                         const val = role?.permissions?.[permission.id];
-                        const displaySuffix = 
-                          val === 'O' ? ' (O)' : 
-                          val === 'A' ? ' (A)' : 
-                          val === 'All' ? ' (ALL)' : '';
+                        const levelLabel = typeof val === 'string' ? VIEW_LEVEL_BADGE_LABELS[val] : undefined;
+                        const displaySuffix = levelLabel ? ` (${levelLabel})` : '';
 
                         return (
                           <div key={permission.id} className="text-[12px] font-bold px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/10 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900/20 transition-all hover:scale-105">

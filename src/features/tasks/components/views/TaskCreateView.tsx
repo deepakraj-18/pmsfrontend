@@ -237,11 +237,11 @@ export function TaskCreateView() {
                                     autoFocus
                                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleCreateTaskList(); } }}
                                 />
-                                <Button type="Button" onClick={handleCreateTaskList} loading={creatingTaskList} size="sm"
+                                <Button type="button" onClick={handleCreateTaskList} loading={creatingTaskList} size="sm"
                                     className="!text-[10px] !px-3 !h-8 !rounded-lg !bg-[hsl(160,60%,45%)] !border-none !text-white">
                                     Save
                                 </Button>
-                                <Button type="Button" onClick={() => setShowTaskListInput(false)} variant="outline" size="sm"
+                                <Button type="button" onClick={() => setShowTaskListInput(false)} variant="outline" size="sm"
                                     className="!w-8 !h-8 !p-0 !rounded-lg !border-[var(--border-color)] !text-[var(--text-muted)]">
                                     ✕
                                 </Button>
@@ -255,7 +255,7 @@ export function TaskCreateView() {
                                             filters={watchProjectId ? { project_id: extractId(watchProjectId) } : {}} />
                                     )} />
                                 </div>
-                                <Button type="Button" disabled={!watchProjectId} onClick={() => setShowTaskListInput(true)} variant="outline" size="sm"
+                                <Button type="button" disabled={!watchProjectId} onClick={() => setShowTaskListInput(true)} variant="outline" size="sm"
                                     className="!h-10 !px-4 !rounded-xl !border-[hsl(160,60%,45%)] !text-[hsl(160,60%,45%)]">
                                     <Plus size={11} className="mr-1" /> New
                                 </Button>
@@ -422,7 +422,7 @@ export function TaskCreateView() {
                 </div>
 
                 <div className="flex items-center justify-between pt-5 mt-5" style={{ borderTop: '1px solid var(--border-color)' }}>
-                    <Button variant="ghost" type="Button" onClick={() => navigate(watchProjectId ? `/projects/${extractId(watchProjectId)}?tab=Tasks` : '/tasks')}>Cancel</Button>
+                    <Button variant="ghost" type="button" onClick={() => navigate(watchProjectId ? `/projects/${extractId(watchProjectId)}?tab=Tasks` : '/tasks')}>Cancel</Button>
                     <Button variant="gradient" type="submit" loading={createTask.isPending || isSubmitting}>
                         {createTask.isPending ? 'Creating…' : 'Create Task'}
                     </Button>
