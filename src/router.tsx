@@ -11,6 +11,13 @@ const PM_ONLY = [ROLES.ADMIN];
 const TL_PLUS = [ROLES.ADMIN, ROLES.TEAM_LEAD];
 const ALL = [ROLES.ADMIN, ROLES.TEAM_LEAD, ROLES.EMPLOYEE];
 
+// Minimum time the page-switch loader stays up once shown, regardless of how fast the
+// transition itself resolves - a floor, not a cap. Lives on the loader's visibility in
+// AppRouter (not wrapped around each import) so it applies on every navigation, not just
+// the first-ever visit to a route - React.lazy caches its import after one resolution, so
+// a per-import delay only ever fires once per route per session.
+const MIN_LOADER_MS = 1000;
+
 const ProjectsListView = React.lazy(() => import('@/features/projects/components/views/ProjectsListView').then(v => ({ default: v.ProjectsListView })));
 const ProjectCreateView = React.lazy(() => import('@/features/projects/components/views/ProjectCreateView').then(v => ({ default: v.ProjectCreateView })));
 const ProjectDetailView = React.lazy(() => import('@/features/projects/components/views/ProjectDetailView').then(v => ({ default: v.ProjectDetailView })));
@@ -60,14 +67,43 @@ const MilestoneEditView = React.lazy(() => import('@/features/milestones/compone
 const Notifications = React.lazy(() => import('@/features/notifications/components/Notifications').then(v => ({ default: v.Notifications })));
 const NotificationSettings = React.lazy(() => import('@/features/notifications/components/NotificationSettings').then(v => ({ default: v.NotificationSettings })));
 const Settings = React.lazy(() => import('@/features/settings/components/Settings').then(v => ({ default: v.Settings })));
+const ChatInbox = React.lazy(() => import('@/features/chat/components/ChatInbox').then(v => ({ default: v.ChatInbox })));
 const Profile = React.lazy(() => import('@/features/users/components/Profile').then(v => ({ default: v.Profile })));
 
 export function AppRouter() {
     const location = useLocation();
+    // Keep rendering the previous route (fully, not just its last frame) while the next
+    // one's lazy chunk is still loading, instead of Suspense discarding it for the fallback.
+    // isPending drives our own overlay on top of that still-visible old page; the Suspense
+    // fallback below is now only a safety net for a Suspense boundary with no prior content
+    // to defer to at all (effectively never hit once a first route has rendered).
+    const deferredLocation = React.useDeferredValue(location);
+    const isPending = location.key !== deferredLocation.key;
+
+    // Every navigation shows the loader for at least MIN_LOADER_MS, even an already-cached
+    // route where isPending flips back to false almost instantly - see the note on
+    // MIN_LOADER_MS above for why this can't just live on the lazy import itself.
+    const [showLoader, setShowLoader] = React.useState(false);
+    const hideTimer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    React.useEffect(() => {
+        if (isPending) {
+            clearTimeout(hideTimer.current);
+            setShowLoader(true);
+        } else {
+            hideTimer.current = setTimeout(() => setShowLoader(false), MIN_LOADER_MS);
+        }
+        return () => clearTimeout(hideTimer.current);
+    }, [isPending]);
+
     return (
+        <>
+        { }
+        <AnimatePresence>
+            {showLoader && <AppOverlayLoader key="page-loader" />}
+        </AnimatePresence>
         <AnimatePresence mode="wait">
             <motion.div
-                key={location.pathname}
+                key={deferredLocation.pathname}
                 initial={{ opacity: 0, x: 8 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -8 }}
@@ -75,7 +111,7 @@ export function AppRouter() {
                 className="h-full w-full"
             >
                 <Suspense fallback={<AppOverlayLoader />}>
-                    <Routes location={location}>
+                    <Routes location={deferredLocation}>
                         { }
                         <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
@@ -160,6 +196,9 @@ export function AppRouter() {
                             <ProtectedRoute requiredPermission="time-create"><WeeklyTimeLogAdd /></ProtectedRoute>
                         } />
 
+                        {/* Chat */}
+                        <Route path="/chat" element={<ChatInbox />} />
+
                         {/* Reports */}
                         <Route path="/reports" element={
                             <ProtectedRoute requiredPermission="report-view"><Reports /></ProtectedRoute>
@@ -238,5 +277,6 @@ export function AppRouter() {
                 </Suspense>
             </motion.div>
         </AnimatePresence>
+        </>
     );
 }

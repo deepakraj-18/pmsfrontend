@@ -27,6 +27,26 @@
           document.documentElement.classList.remove('dark');
         }
       } catch (e) { }
+
+      // Splash shows only for: a refresh while already signed in (token present), the
+      // logout redirect (AuthProvider sets this flag right before navigating here), or the
+      // MS SSO callback landing back from Microsoft. A cold/direct visit to /login (typed
+      // URL, bookmark, first-ever visit) gets no splash - just the login page itself once
+      // React mounts.
+      try {
+        var path = window.location.pathname;
+        // A stale token can sit in localStorage even when deliberately looking at /login
+        // directly (no logout happened) - only count "signed in" for paths other than
+        // /login itself, or a direct visit there would wrongly get the splash too.
+        var hasToken = path !== '/login' && !!localStorage.getItem('pms_token');
+        var postLogout = sessionStorage.getItem('post-logout');
+        if (postLogout) sessionStorage.removeItem('post-logout');
+        var isSsoCallback = path === '/redirect' || path === '/auth/ms-callback';
+        var showSplash = hasToken || !!postLogout || isSsoCallback;
+        if (!showSplash) {
+          document.documentElement.classList.add('no-splash');
+        }
+      } catch (e) { }
     })();
   </script>
 </head>
@@ -35,6 +55,10 @@
   <div id="root">
 
     <style>
+      html.no-splash #initial-loader {
+        display: none;
+      }
+
       #initial-loader {
         display: flex;
         flex-direction: column;
@@ -44,16 +68,20 @@
         width: 100vw;
         background-color: #f8fafc;
         font-family: 'Inter', system-ui, sans-serif;
-        gap: 20px;
+        gap: 18px;
       }
 
-      .loader-ring {
-        width: 48px;
-        height: 48px;
-        border: 3px solid #e2e8f0;
-        border-top-color: #14b8a6;
-        border-radius: 50%;
-        animation: spin 0.85s linear infinite;
+      /* A curved reveal anchored at the peacock's feet (bottom-center) - no scale transform
+         here, so it reads as the tail opening along a curve, not the icon growing/rising. */
+      .peacock-logo {
+        width: 120px;
+        height: auto;
+        clip-path: circle(0% at 50% 100%);
+        filter: drop-shadow(0 8px 20px rgba(20, 184, 166, 0.25));
+        animation:
+          peacock-spread 1.3s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+          peacock-breathe 2.6s ease-in-out infinite;
+        animation-delay: 0s, 1.3s;
       }
 
       .loader-text {
@@ -64,29 +92,41 @@
         text-transform: uppercase;
       }
 
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
+      @keyframes peacock-spread {
+        0% {
+          clip-path: circle(0% at 50% 100%);
+        }
+        100% {
+          /* 150% safely overshoots the farthest corner from the bottom-center anchor, so
+             every feather tip clears the reveal regardless of exact image proportions. */
+          clip-path: circle(150% at 50% 100%);
         }
       }
 
-      @media (prefers-color-scheme: dark) {
-        #initial-loader {
-          background-color: #0f172a;
+      @keyframes peacock-breathe {
+        0%, 100% {
+          transform: scale(1);
+          filter: drop-shadow(0 8px 20px rgba(20, 184, 166, 0.25));
         }
+        50% {
+          transform: scale(1.025);
+          filter: drop-shadow(0 10px 26px rgba(20, 184, 166, 0.4));
+        }
+      }
 
-        .loader-ring {
-          border-color: #1e293b;
-          border-top-color: #14b8a6;
-        }
+      /* Matches the app's own saved theme (the inline script above sets this class on <html>
+         from localStorage), not the OS's prefers-color-scheme - the two can disagree if the
+         user picked a theme in-app that differs from their system setting. */
+      html.dark #initial-loader {
+        background-color: #0f172a;
+      }
 
-        .loader-text {
-          color: #475569;
-        }
+      html.dark .loader-text {
+        color: #475569;
       }
     </style>
     <div id="initial-loader">
-      <div class="loader-ring"></div>
+      <img class="peacock-logo" src="/src/assets/techspear-logo-icon.png" alt="Techspear" />
       <div class="loader-text">Loading</div>
     </div>
   </div>

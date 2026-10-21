@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Logo } from '@/components/core/Logo';
 import './auth.scss';
@@ -6,6 +7,7 @@ import { Button } from 'primereact/button';
 import { useAuth } from '@/auth/AuthProvider';
 import { authService, getAuthErrorMessage } from '@/api/services/auth.service';
 import { ROUTES } from '@/constants/constants';
+import { TechspearLoader } from '@/components/feedback/TechspearLoader';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -40,7 +42,12 @@ export function LoginPage() {
     try {
       const result = await authService.login({ email: email.trim(), password });
       if (!result?.access_token) throw new Error('Invalid token response: access_token missing.');
-      await login(result.access_token, result.refresh_token, result);
+      // Minimum display time so the loader below is actually visible rather than flashing
+      // for a few milliseconds on a fast local login.
+      await Promise.all([
+        login(result.access_token, result.refresh_token, result),
+        new Promise((resolve) => setTimeout(resolve, 1200)),
+      ]);
       navigate(ROUTES.DASHBOARD, { replace: true });
     } catch (err: any) {
       setError(getAuthErrorMessage(err, 'Sign in failed. Please try again.'));
@@ -50,6 +57,9 @@ export function LoginPage() {
 
   return (
     <div className="auth-wrapper">
+      <AnimatePresence>
+        {isSubmitting && <TechspearLoader key="signin-loader" label="Signing in" />}
+      </AnimatePresence>
 
       <div className="auth-orb-1" />
       <div className="auth-orb-2" />

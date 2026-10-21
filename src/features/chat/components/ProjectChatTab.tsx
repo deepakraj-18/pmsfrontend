@@ -17,6 +17,9 @@ interface Props {
   canPost: boolean;
   /** Admins may remove other people's messages. */
   canModerate: boolean;
+  /** Fill the parent's height instead of the fixed box sized for the Project Detail tab -
+   * used by the global chat inbox, where this panel IS the page, not a tab inside one. */
+  fillHeight?: boolean;
 }
 
 const STATUS_TEXT = {
@@ -110,7 +113,7 @@ const errorText = (err: any, fallback: string) =>
     ? 'You are sending messages too quickly. Please wait a moment.'
     : err?.response?.data?.message || fallback;
 
-export function ProjectChatTab({ projectId, currentUserId, canPost, canModerate }: Props) {
+export function ProjectChatTab({ projectId, currentUserId, canPost, canModerate, fillHeight = false }: Props) {
   const { showToast } = useToast();
   const { messages, status, loading, loadError, hasMore, loadOlder, send, edit, remove } =
     useProjectChat(projectId);
@@ -253,7 +256,7 @@ export function ProjectChatTab({ projectId, currentUserId, canPost, canModerate 
   }
 
   return (
-    <div className="flex flex-col rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 h-[640px] max-h-[75vh]">
+    <div className={`flex flex-col rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 ${fillHeight ? 'h-full' : 'h-[640px] max-h-[75vh]'}`}>
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 text-xs">
         <span className="font-semibold text-slate-700 dark:text-slate-200">Project chat</span>
         <span className="flex items-center gap-2 text-slate-500" role="status" aria-live="polite">

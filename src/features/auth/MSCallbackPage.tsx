@@ -4,6 +4,7 @@ import { api } from '@/api/client';
 import { useAuth } from '@/auth/AuthProvider';
 import './auth.scss';
 import { Button } from 'primereact/button';
+import { TechspearLoader } from '@/components/feedback/TechspearLoader';
 
 export function MSCallbackPage() {
   const [searchParams] = useSearchParams();
@@ -45,7 +46,13 @@ export function MSCallbackPage() {
       }, { timeout: 30000 });
 
       if (response.data?.access_token) {
-        await login(response.data.access_token, response.data.refresh_token, response.data);
+        // The exchange is often fast enough locally that the "Authenticating" loader would
+        // never actually be seen before navigating away - same minimum-display-time idea as
+        // the page-switch loader elsewhere.
+        await Promise.all([
+          login(response.data.access_token, response.data.refresh_token, response.data),
+          new Promise((resolve) => setTimeout(resolve, 1200)),
+        ]);
         navigate('/', { replace: true });
       } else {
         throw new Error('Invalid token response: access_token missing.');
@@ -83,19 +90,7 @@ export function MSCallbackPage() {
 
   return (
     <div className="auth-wrapper">
-      <div className="auth-callback-container">
-        { }
-        <div className="auth-spinner-outer">
-          <div className="auth-spinner-ring" />
-          <div className="auth-spinner-pulse" />
-          <div className="auth-spinner-dot" />
-        </div>
-        <h2 className="auth-loading-title">Authenticating</h2>
-        <p className="auth-loading-subtitle">Securely verifying your identity with Microsoft…</p>
-        <div className="auth-progress-bar">
-          <div className="auth-progress-fill" />
-        </div>
-      </div>
+      <TechspearLoader fullScreen={false} label="Authenticating" />
     </div>
   );
 }

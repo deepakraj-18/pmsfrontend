@@ -65,8 +65,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const logout = useCallback(() => {
         localStorage.removeItem(STORAGE_KEYS.TOKEN);
         localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-        setToken(null);
-        setUser(null);
+        // No setToken(null)/setUser(null) here - window.location.href fully unloads the
+        // page anyway, so updating React state first only caused a flash of this
+        // about-to-be-destroyed SPA re-rendering LoginPage (via AuthGuard's client-side
+        // redirect) before the real navigation took over and showed the splash.
+        // index.html's inline script reads this once (then clears it) to tell "logout
+        // landing on /login" apart from "cold/direct visit to /login" - only the former
+        // should show the splash.
+        sessionStorage.setItem('post-logout', '1');
         window.location.href = ROUTES.LOGIN;
     }, []);
 

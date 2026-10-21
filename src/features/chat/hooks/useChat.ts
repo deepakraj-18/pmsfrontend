@@ -8,6 +8,7 @@ export type ChatConnectionStatus = 'connecting' | 'live' | 'reconnecting' | 'off
 
 export const chatKeys = {
     unread: ['chat', 'unread'] as const,
+    rooms: ['chat', 'rooms'] as const,
     members: (projectId: number) => ['chat', 'members', projectId] as const,
 };
 
@@ -31,6 +32,19 @@ export function useChatUnread(enabled = true) {
         enabled,
         queryKey: chatKeys.unread,
         queryFn: chatService.getUnread,
+        refetchInterval: CHAT.UNREAD_POLL_MS,
+        staleTime: CHAT.UNREAD_POLL_MS / 2,
+        retry: false,
+    });
+}
+
+/** The global inbox's conversation list. Same poll cadence as the unread badge, since both
+ * reflect "what's new across rooms" and should never disagree for long. */
+export function useChatRooms(enabled = true) {
+    return useQuery({
+        enabled,
+        queryKey: chatKeys.rooms,
+        queryFn: chatService.getRooms,
         refetchInterval: CHAT.UNREAD_POLL_MS,
         staleTime: CHAT.UNREAD_POLL_MS / 2,
         retry: false,

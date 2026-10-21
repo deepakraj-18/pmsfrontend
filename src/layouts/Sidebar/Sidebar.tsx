@@ -16,6 +16,7 @@ import {
   PanelLeft,
   Milestone,
   LayoutTemplate,
+  MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '@/auth/AuthProvider';
 import { ROLES, checkPermission, can } from '@/utils/permissions';
@@ -30,6 +31,7 @@ interface NavItem {
   section?: string;
   allowedRoles?: string[];
   requiredPermission?: string;
+  internalOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -38,6 +40,7 @@ const navItems: NavItem[] = [
   { path: '/tasks', label: 'Tasks', icon: <CheckSquare size={17} />, requiredPermission: 'task-view' },
   { path: '/issues', label: 'Defects', icon: <AlertCircle size={17} />, requiredPermission: 'issue-view' },
   { path: '/time-log', label: 'Time Logs', icon: <Clock size={17} />, requiredPermission: 'time-view' },
+  { path: '/chat', label: 'Chat', icon: <MessageSquare size={17} /> },
   {
     path: '/reports', label: 'Reports', icon: <BarChart3 size={17} />,
     requiredPermission: 'report-view',
@@ -54,6 +57,7 @@ const navItems: NavItem[] = [
     path: '/users', label: 'Logged Users', icon: <Users size={17} />,
     section: 'Management',
     requiredPermission: 'user-view',
+    internalOnly: true,
   },
   {
     path: '/teams', label: 'Teams', icon: <UsersRound size={17} />,
@@ -108,6 +112,14 @@ export function Sidebar() {
 
   const visibleItems = navItems.filter(item => {
     const role = user?.role;
+
+    if (item.internalOnly && user?.is_external) {
+      return false;
+    }
+
+    if (item.path === '/chat' && !canChat) {
+      return false;
+    }
 
     const permissionKey = item.requiredPermission;
     if (permissionKey) {
@@ -216,7 +228,7 @@ export function Sidebar() {
                   )}
                   <span className="relative flex-shrink-0 transition-transform duration-150 group-hover:scale-105">
                     {item.icon}
-                    {collapsed && item.path === '/projects' && unreadTotal > 0 && (
+                    {collapsed && item.path === '/chat' && unreadTotal > 0 && (
                       <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-rose-500" aria-label="Unread chat messages" />
                     )}
                   </span>
@@ -225,7 +237,7 @@ export function Sidebar() {
                       {item.label}
                     </span>
                   )}
-                  {!collapsed && item.path === '/projects' && unreadTotal > 0 && (
+                  {!collapsed && item.path === '/chat' && unreadTotal > 0 && (
                     <span
                       className={`ml-auto min-w-[18px] rounded-full px-1.5 text-center text-[10px] font-bold leading-[18px] text-white
                         ${mentionTotal > 0 ? 'bg-amber-500' : 'bg-rose-500'}`}

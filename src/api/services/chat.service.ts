@@ -31,6 +31,17 @@ export interface ChatMember {
     is_external: boolean;
 }
 
+export interface ChatRoom {
+    project_id: number;
+    project_name: string;
+    last_message_body: string | null;
+    last_message_sender_name: string | null;
+    last_message_at: string | null;
+    last_message_has_attachments: boolean;
+    unread_count: number;
+    mention_count: number;
+}
+
 // `api` already unwraps the { is_success, data } envelope.
 export const chatService = {
     async getMessages(projectId: number, beforeId?: number, limit = 50): Promise<ChatMessage[]> {
@@ -64,9 +75,17 @@ export const chatService = {
 
     /** Files are fetched with the user's token (never a public link), then shown or saved from memory. */
     async downloadAttachment(projectId: number, attachmentId: number): Promise<Blob> {
+        // This request gets redirected (302) to a short-lived Azure Blob SAS URL - a
+        // different origin, which does not support credentialed CORS (no cookies involved;
+        // the SAS token in the URL is the auth). withCredentials:true (the shared client's
+        // default) forces the browser into credentialed mode for that redirected request,
+        // which Blob Storage can never satisfy regardless of its CORS rule - override it off
+        // for just this call. Our own API doesn't need it here either (auth is the Bearer
+        // header, not a cookie).
         const { data } = await api.get(`/projects/${projectId}/chat/attachments/${attachmentId}`, {
             responseType: 'blob',
             timeout: 120_000,
+            withCredentials: false,
         });
         return data;
     },
@@ -91,6 +110,12 @@ export const chatService = {
 
     async getUnread(): Promise<ChatUnread[]> {
         const { data } = await api.get('/chat/unread');
+        return data;
+    },
+
+    /** The global inbox's conversation list - every room this user can enter. */
+    async getRooms(): Promise<ChatRoom[]> {
+        const { data } = await api.get('/chat/rooms');
         return data;
     },
 };
